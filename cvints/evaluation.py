@@ -3,6 +3,8 @@
 
 from cvints import Dataset
 import numpy as np
+from collections import defaultdict
+from matplotlib import pyplot as plt
 
 
 class Estimator:
@@ -38,6 +40,9 @@ class PersonDetectionEstimator(Estimator):
         total_iou = []
         fp_detection_counter = 0
         missed_counter = 0
+
+        fp_per_number_of_person_on_image = defaultdict()
+
         for each_prediction in self.dataset.model_evaluation_results:
             mean_iou_of_this_image = 0
             pred_id = each_prediction['image_id']
@@ -60,15 +65,30 @@ class PersonDetectionEstimator(Estimator):
                         mean_iou_of_this_image = np.mean(tmp_sorted[:number_of_gt_bboxes_of_this_image])
                     elif number_of_gt_bboxes_of_this_image > number_of_predicted_bboxes_of_this_image:
                         iou_to_estimate = tmp_sorted[:number_of_predicted_bboxes_of_this_image]
-                        diff_size = number_of_gt_bboxes_of_this_image - number_of_predicted_bboxes_of_this_image
-                        for _ in range(diff_size):
+                        miss_size = number_of_gt_bboxes_of_this_image - number_of_predicted_bboxes_of_this_image
+                        for _ in range(miss_size):
                             np.append(iou_to_estimate, [0])
                         mean_iou_of_this_image = np.mean(iou_to_estimate)
-                        missed_counter += diff_size
+                        missed_counter += miss_size
                     else:
                         mean_iou_of_this_image = np.mean(tmp_sorted[:number_of_gt_bboxes_of_this_image])
-                        fp_detection_counter += \
-                            (number_of_predicted_bboxes_of_this_image - number_of_gt_bboxes_of_this_image)
+                        fp_size = number_of_predicted_bboxes_of_this_image - number_of_gt_bboxes_of_this_image
+                        fp_detection_counter += fp_size
+                        if number_of_gt_bboxes_of_this_image not in fp_per_number_of_person_on_image.keys():
+                            fp_per_number_of_person_on_image[number_of_gt_bboxes_of_this_image] = fp_size
+                        else:
+                            fp_per_number_of_person_on_image[number_of_gt_bboxes_of_this_image] += fp_size
 
             total_iou.append(mean_iou_of_this_image)
-        return np.mean(total_iou)
+
+        person_per_image_values = fp_per_number_of_person_on_image.keys()
+        fp_values = fp_per_number_of_person_on_image.values()
+
+        plt.title('False positive errors No per No of persons on images')
+        plt.xlabel('No of persons on image')
+        plt.ylabel('False positive No')
+        plt.bar(person_per_image_values, fp_values)
+        plt.show()
+        print('Mean Iou = {:.2f}'.format(np.mean(total_iou)))
+
+        return None

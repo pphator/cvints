@@ -20,4 +20,5 @@ if __name__ == '__main__':
 
     estimator = PersonDetectionEstimator(dataset)
 
-    print(estimator.compute_mean_iou())
+    res = estimator.compute_mean_iou()
+
