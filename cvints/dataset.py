@@ -1,10 +1,5 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""
-Created on Thu Apr  2 14:03:18 2020
-
-@author: innolab001
-"""
 
 import json
 import numpy as np
