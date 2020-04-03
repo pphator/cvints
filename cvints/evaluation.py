@@ -1,14 +1,18 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-from dataset import Dataset
+from cvints import Dataset
 import numpy as np
 
 
 class Estimator:
-    def __init__(self, dataset, task):
+    def __init__(self, dataset):
         self.dataset = dataset
-        self.task = task
+
+
+class PersonDetectionEstimator(Estimator):
+    def __init__(self, dataset):
+        super(PersonDetectionEstimator, self).__init__(dataset)
 
     @staticmethod
     def get_iou(pred_box, gt_box):
@@ -30,36 +34,41 @@ class Estimator:
 
         return iou
 
-    def evaluate(self):
+    def compute_mean_iou(self):
         total_iou = []
         fp_detection_counter = 0
-        fn_detection_counter = 0
-        for each_prediction in self.dataset.predictions:
+        missed_counter = 0
+        for each_prediction in self.dataset.model_evaluation_results:
+            mean_iou_of_this_image = 0
             pred_id = each_prediction['image_id']
-            this_image_gt = [item for item in self.dataset.annotations
+            gt_bboxes_of_this_image = [item['bbox'] for item in self.dataset.annotations['annotations_info']
                              if item['image_id'] == pred_id]
             detection_results = each_prediction['detection_results']
-            human_detections = [x[0] for x in detection_results]
+            predicted_bboxes_of_this_image = [x[0] for x in detection_results]
 
             tmp_results = []
-            gt_size = len(this_image_gt)
-            pred_size = len(human_detections)
-            for each_gt in this_image_gt:
-                for each_pred in human_detections:
-                    tmp_results.append(Estimator.get_iou(each_pred, each_gt['bbox']))
-            tmp_sorted = np.sort(tmp_results)[::-1]
+            number_of_gt_bboxes_of_this_image = len(gt_bboxes_of_this_image)
+            number_of_predicted_bboxes_of_this_image = len(predicted_bboxes_of_this_image)
+            for each_predicted_bbox in predicted_bboxes_of_this_image:
+                for each_gt_bbox in gt_bboxes_of_this_image:
+                    tmp_results.append(PersonDetectionEstimator.get_iou(each_predicted_bbox, each_gt_bbox))
+            tmp_sorted = np.sort(tmp_results)[::-1]  # reverse the ascending sorted list
+            if number_of_gt_bboxes_of_this_image != 0:
+                if number_of_predicted_bboxes_of_this_image != 0:
 
-            if gt_size != 0:
-                if pred_size != 0:
-
-                    if gt_size == pred_size:
-                        result = np.mean(tmp_sorted[:gt_size])
-                    elif gt_size > pred_size:
-                        result = np.mean(tmp_sorted[:gt_size])
-                        fn_detection_counter += (gt_size - pred_size)
+                    if number_of_gt_bboxes_of_this_image == number_of_predicted_bboxes_of_this_image:
+                        mean_iou_of_this_image = np.mean(tmp_sorted[:number_of_gt_bboxes_of_this_image])
+                    elif number_of_gt_bboxes_of_this_image > number_of_predicted_bboxes_of_this_image:
+                        iou_to_estimate = tmp_sorted[:number_of_predicted_bboxes_of_this_image]
+                        diff_size = number_of_gt_bboxes_of_this_image - number_of_predicted_bboxes_of_this_image
+                        for _ in range(diff_size):
+                            np.append(iou_to_estimate, [0])
+                        mean_iou_of_this_image = np.mean(iou_to_estimate)
+                        missed_counter += diff_size
                     else:
-                        result = np.mean(tmp_sorted)
-                        fp_detection_counter += (pred_size - gt_size)
+                        mean_iou_of_this_image = np.mean(tmp_sorted[:number_of_gt_bboxes_of_this_image])
+                        fp_detection_counter += \
+                            (number_of_predicted_bboxes_of_this_image - number_of_gt_bboxes_of_this_image)
 
-                    total_iou.append(result)
-        return np.mean(total_iou), fp_detection_counter, fn_detection_counter
+            total_iou.append(mean_iou_of_this_image)
+        return np.mean(total_iou)

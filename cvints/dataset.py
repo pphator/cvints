@@ -17,7 +17,8 @@ class Dataset:
         self.path_to_data = path_to_data
         self.path_to_annotations_file = path_to_annotations_file
         self.is_sampled = is_sampled
-        self.predictions = None
+        self.path_to_evaluations_results_file = None
+        self.model_evaluation_results = None
         if self.path_to_annotations_file:
             with open(self.path_to_annotations_file, 'r') as f:
                 annotations_data = json.load(f)
@@ -27,17 +28,17 @@ class Dataset:
             sampled_images_ids = [x['id'] for x in sampled_images_info]
             sampled_annotations_data = [x for x in annotations_data['annotations'] if
                                         x['image_id'] in sampled_images_ids]
-            self.annotations = {'images_info': sampled_images_info, 'annotation_info': sampled_annotations_data}
+            self.annotations = {'images_info': sampled_images_info, 'annotations_info': sampled_annotations_data}
 
         else:
             images_info = annotations_data['images']
             annotations_data = annotations_data['annotations']
-            self.annotations = {'images_info': images_info, 'annotation_info': annotations_data}
+            self.annotations = {'images_info': images_info, 'annotations_info': annotations_data}
 
     def draw_gt_bboxes(self, separately=False, bbox_line_width=3):
         shown = False
         images_info = self.annotations['images_info']
-        annotation_info = self.annotations['annotation_info']
+        annotation_info = self.annotations['annotations_info']
         for each_image in images_info:
             image_path = self.path_to_data + '/' + each_image['file_name']
             image_id = each_image['id']
@@ -57,8 +58,11 @@ class Dataset:
                 plt.imshow(img)
                 plt.show()
 
-    def set_predictions(self, predictions):
-        self.predictions = predictions
+    def set_model_evaluation_results(self, path_to_file_with_evaluation_results):
+        self.path_to_evaluations_results_file = path_to_file_with_evaluation_results
+        if self.path_to_evaluations_results_file:
+            with open(self.path_to_evaluations_results_file, 'r') as f:
+                self.model_evaluation_results = json.load(f)
 
 
 class PersonDetectionDataset(Dataset):
@@ -68,9 +72,9 @@ class PersonDetectionDataset(Dataset):
 
     def describe_gt(self, with_plots=False):
         images_number = len(self.annotations['images_info'])
-        total_person_number = len(self.annotations['annotation_info'])
+        total_person_number = len(self.annotations['annotations_info'])
         persons_per_image_dict = {}
-        for each_image_info in self.annotations['annotation_info']:
+        for each_image_info in self.annotations['annotations_info']:
             img_id = each_image_info['image_id']
             if img_id not in persons_per_image_dict.keys():
                 persons_per_image_dict[img_id] = 1
@@ -92,3 +96,9 @@ class PersonDetectionDataset(Dataset):
             plt.title('Persons per image distribution')
             sns.distplot(persons_per_image_list, kde=False)
             plt.show()
+
+    # ToDo: complete method to check person detection model evaluation file format. Should be list of dicts (but may
+    #  be discussed)
+    def check_model_evaluation_results_format(self):
+
+        return None
