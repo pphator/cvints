@@ -67,8 +67,8 @@ class Dataset:
 
 class PersonDetectionDataset(Dataset):
     def __init__(self, path_to_data, path_to_annotations_file, is_sampled=False, samples_number=5):
-        super(PersonDetectionDataset, self).__init__(path_to_data, path_to_annotations_file, is_sampled=False,
-                                                     samples_number=5)
+        super(PersonDetectionDataset, self).__init__(path_to_data, path_to_annotations_file, is_sampled,
+                                                     samples_number)
 
     def describe_gt(self, with_plots=False):
         images_number = len(self.annotations['images_info'])
