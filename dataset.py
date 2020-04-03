@@ -16,11 +16,12 @@ from matplotlib import pyplot as plt
 GREEN = (0, 255, 0)
 
 
-class Dataset():
+class Dataset:
     def __init__(self, path_to_data, path_to_annotations_file, is_sampled=False, samples_number=5):
         self.path_to_data = path_to_data
         self.path_to_annotations_file = path_to_annotations_file
         self.is_sampled = is_sampled
+        self.predictions = None
         if self.path_to_annotations_file:
             with open(self.path_to_annotations_file, 'r') as f:
                 annotations_data = json.load(f)
@@ -58,3 +59,5 @@ class Dataset():
                 plt.imshow(img)
                 plt.show()
 
+    def set_predictions(self, predictions):
+        self.predictions = predictions
