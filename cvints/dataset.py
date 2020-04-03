@@ -6,6 +6,7 @@ import numpy as np
 from random import sample
 import cv2
 from matplotlib import pyplot as plt
+import seaborn as sns
 
 
 GREEN = (0, 255, 0)
@@ -67,6 +68,27 @@ class PersonDetectionDataset(Dataset):
 
     def describe_gt(self, with_plots=False):
         images_number = len(self.annotations['images_info'])
+        total_person_number = len(self.annotations['annotation_info'])
+        persons_per_image_dict = {}
+        for each_image_info in self.annotations['annotation_info']:
+            img_id = each_image_info['image_id']
+            if img_id not in persons_per_image_dict.keys():
+                persons_per_image_dict[img_id] = 1
+            else:
+                persons_per_image_dict[img_id] += 1
 
+        persons_per_image_list = list(persons_per_image_dict.values())
+        mean_persons_per_image = np.mean(persons_per_image_list)
+        median_persons_per_image = np.median(persons_per_image_list)
+        std_persons_per_image = np.std(persons_per_image_list)
 
         print('Images number in dataset = {}'.format(images_number))
+        print('Persons number in dataset = {}'.format(total_person_number))
+        print('Mean value of persons per image = {:.2f}'.format(mean_persons_per_image))
+        print('Median value of persons per image = {:.2f}'.format(median_persons_per_image))
+        print('Std value of persons per image = {:.2f}'.format(std_persons_per_image))
+
+        if with_plots:
+            plt.title('Persons per image distribution')
+            sns.distplot(persons_per_image_list, kde=False)
+            plt.show()
