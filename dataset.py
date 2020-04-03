@@ -25,16 +25,18 @@ class Dataset:
         if self.path_to_annotations_file:
             with open(self.path_to_annotations_file, 'r') as f:
                 annotations_data = json.load(f)
-        
+
         if is_sampled:
             sampled_images_info = sample(annotations_data['images'], samples_number)
             sampled_images_ids = [x['id'] for x in sampled_images_info]
             sampled_annotations_data = [x for x in annotations_data['annotations'] if
-                           x['image_id'] in sampled_images_ids]
+                                        x['image_id'] in sampled_images_ids]
             self.annotations = {'images_info': sampled_images_info, 'annotation_info': sampled_annotations_data}
-            
+
         else:
-            self.annotations = annotations_data
+            images_info = annotations_data['images']
+            annotations_data = annotations_data['annotations']
+            self.annotations = {'images_info': images_info, 'annotation_info': annotations_data}
 
     def draw_gt_bboxes(self, separately=False, bbox_line_width=3):
         shown = False
@@ -61,3 +63,15 @@ class Dataset:
 
     def set_predictions(self, predictions):
         self.predictions = predictions
+
+
+class PersonDetectionDataset(Dataset):
+    def __init__(self, path_to_data, path_to_annotations_file, is_sampled=False, samples_number=5):
+        super(PersonDetectionDataset, self).__init__(path_to_data, path_to_annotations_file, is_sampled=False,
+                                                     samples_number=5)
+
+    def describe_gt(self, with_plots=False):
+        images_number = len(self.annotations['images_info'])
+
+
+        print('Images number in dataset = {}'.format(images_number))
