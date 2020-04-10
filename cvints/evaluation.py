@@ -7,14 +7,19 @@ from collections import defaultdict
 from matplotlib import pyplot as plt
 
 
-class Estimator:
+class Evaluator:
     def __init__(self, dataset):
         self.dataset = dataset
 
 
-class PersonDetectionEstimator(Estimator):
+class ObjectDetectionEvaluator(Evaluator):
     def __init__(self, dataset):
-        super(PersonDetectionEstimator, self).__init__(dataset)
+        super(ObjectDetectionEvaluator, self).__init__(dataset)
+
+
+class PersonDetectionEvaluator(Evaluator):
+    def __init__(self, dataset):
+        super(PersonDetectionEvaluator, self).__init__(dataset)
 
     @staticmethod
     def get_iou(pred_box, gt_box):
@@ -56,7 +61,7 @@ class PersonDetectionEstimator(Estimator):
             number_of_predicted_bboxes_of_this_image = len(predicted_bboxes_of_this_image)
             for each_predicted_bbox in predicted_bboxes_of_this_image:
                 for each_gt_bbox in gt_bboxes_of_this_image:
-                    tmp_results.append(PersonDetectionEstimator.get_iou(each_predicted_bbox, each_gt_bbox))
+                    tmp_results.append(PersonDetectionEvaluator.get_iou(each_predicted_bbox, each_gt_bbox))
             tmp_sorted = np.sort(tmp_results)[::-1]  # reverse the ascending sorted list
             if number_of_gt_bboxes_of_this_image != 0:
                 if number_of_predicted_bboxes_of_this_image != 0:

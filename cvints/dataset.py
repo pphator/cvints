@@ -83,6 +83,9 @@ class ObjectDetectionDataset(Dataset):
         super(ObjectDetectionDataset, self).__init__(path_to_data, path_to_annotations_file, is_sampled,
                                                     samples_number)
 
+    def get_images_ids(self):
+        return [x['id'] for x in self.annotations['images_info']]
+
     def draw_gt_bboxes(self, draw_bboxes_separately=False, bbox_line_width=3):
         """ Draw ground truth bounding boxes
 
@@ -150,7 +153,7 @@ class HumanDetectionDataset(ObjectDetectionDataset):
             with_plots : bool
                 if True, the method will print some statistics as text and draw some plots
                 if False, the method will only print some statistics of the data as text
-            
+
             Returns
             ----------
             None
