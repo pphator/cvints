@@ -46,6 +46,9 @@ def miss_rate_per_annotated_number(model):
     mean_miss_rate_per_annotated_humans_number = result.values()
 
     plt.bar(number_of_annotated_humans_in_dataset, mean_miss_rate_per_annotated_humans_number)
+    plt.title('Mean miss rate per annotated humans number')
+    plt.xlabel('Annotated humans No')
+    plt.ylabel('Mean miss rate')
     plt.xticks(range(max(number_of_annotated_humans_in_dataset) + 1),
                range(max(number_of_annotated_humans_in_dataset) + 1))
     plt.show()
