@@ -20,6 +20,7 @@ class Model:
 
         self.path_to_detection_results_file = path_to_detection_results_file
         self.detection_results = None
+        self.evaluation_results = None
 
     def evaluate(self):
         pass
@@ -86,6 +87,8 @@ class ObjectDetectionModel(Model):
             pred_image_id = each_prediction['image_id']
             gt_bboxes_of_this_image = [item['bbox'] for item in self.test_dataset.annotations['annotations_info']
                                        if item['image_id'] == pred_image_id]
+            if len(gt_bboxes_of_this_image) == 0:
+                continue
             detection_results = each_prediction['detection_results']
             predicted_bboxes_of_this_image = [x[0] for x in detection_results]
             number_of_gt_bboxes_of_this_image = len(gt_bboxes_of_this_image)
@@ -97,6 +100,7 @@ class ObjectDetectionModel(Model):
                 this_predicted_bbox_iou_list = []
                 for each_gt_bbox in gt_bboxes_of_this_image:
                     this_predicted_bbox_iou_list.append(ObjectDetectionModel.get_iou(each_predicted_bbox, each_gt_bbox))
+
                 max_iou_for_prediction = np.max(this_predicted_bbox_iou_list)
                 this_prediction_iou_list.append(max_iou_for_prediction)
 
@@ -111,6 +115,6 @@ class ObjectDetectionModel(Model):
         recall = true_positives / number_of_gt_bboxes
         precision = true_positives / number_of_predicted_bboxes
         miss_rate = 1 - recall
-
+        self.evaluation_results = results
         return precision, recall, miss_rate, results
 
