@@ -34,4 +34,4 @@ You can define model using training/validation data, test data and results on te
 
 ## Examples
 
-Check dataset before start testing model with it ([rus](https://github.com/VasilyBoychuk/cvints/blob/master/examples/rus/Check%20dataset.ipynb)|[eng](https://github.com/VasilyBoychuk/cvints/blob/master/examples/rus/Check%20dataset.ipynb))
+Check dataset before start testing model with it ([rus](https://github.com/VasilyBoychuk/cvints/blob/master/examples/rus/Check%20dataset.ipynb)|eng)
