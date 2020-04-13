@@ -30,7 +30,7 @@ class Dataset:
             The number of images to load to the Dataset if `is_sampled` is True
     """
 
-    def __init__(self, path_to_data, path_to_annotations_file, is_sampled=False, samples_number=5,
+    def __init__(self, path_to_data, path_to_annotations_file, is_sampled=False, sample_size=5,
                  model_evaluation_results=None):
         self.path_to_data = path_to_data
         self.path_to_annotations_file = path_to_annotations_file
@@ -42,7 +42,7 @@ class Dataset:
                 annotations_data = json.load(f)
 
         if is_sampled:
-            sampled_images_info = sample(annotations_data['images'], samples_number)
+            sampled_images_info = sample(annotations_data['images'], sample_size)
             sampled_images_ids = [x['id'] for x in sampled_images_info]
             sampled_annotations_data = [x for x in annotations_data['annotations'] if
                                         x['image_id'] in sampled_images_ids]
@@ -53,12 +53,10 @@ class Dataset:
             annotations_data = annotations_data['annotations']
             self.annotations = {'images_info': images_info, 'annotations_info': annotations_data}
 
-    def set_model_evaluation_results(self, path_to_file_with_evaluation_results):
-        """ Set model evaluation results on this dataset """
-        self.path_to_evaluations_results_file = path_to_file_with_evaluation_results
-        if self.path_to_evaluations_results_file:
-            with open(self.path_to_evaluations_results_file, 'r') as f:
-                self.model_evaluation_results = json.load(f)
+    @classmethod
+    def get_subset(cls, dataset, size=5):
+        return cls(path_to_data=dataset.path_to_data, path_to_annotations_file=dataset.path_to_annotations_file,
+                   is_sampled=True, sample_size=size)
 
 
 class ObjectDetectionDataset(Dataset):
@@ -79,9 +77,8 @@ class ObjectDetectionDataset(Dataset):
             The number of images to load to the Dataset if `is_sampled` is True
     """
 
-    def __init__(self, path_to_data, path_to_annotations_file, is_sampled=False, samples_number=5):
-        super(ObjectDetectionDataset, self).__init__(path_to_data, path_to_annotations_file, is_sampled,
-                                                    samples_number)
+    def __init__(self, path_to_data, path_to_annotations_file, is_sampled=False, sample_size=5):
+        super(ObjectDetectionDataset, self).__init__(path_to_data, path_to_annotations_file, is_sampled, sample_size)
 
     def get_images_ids(self):
         return [x['id'] for x in self.annotations['images_info']]
@@ -141,9 +138,8 @@ class HumanDetectionDataset(ObjectDetectionDataset):
         samples_number: int
             The number of images to load to the Dataset if `is_sampled` is True
     """
-    def __init__(self, path_to_data, path_to_annotations_file, is_sampled=False, samples_number=5):
-        super(HumanDetectionDataset, self).__init__(path_to_data, path_to_annotations_file, is_sampled,
-                                                    samples_number)
+    def __init__(self, path_to_data, path_to_annotations_file, is_sampled=False, sample_size=5):
+        super(HumanDetectionDataset, self).__init__(path_to_data, path_to_annotations_file, is_sampled, sample_size)
 
     def describe_gt(self, with_plots=False):
         """ Describe data in dataset
