@@ -32,3 +32,6 @@ To do this, specify the paths to images and annotation files.
 You can define model using training/validation data, test data and results on test data.
 
 
+## Examples
+
+Check dataset before start testing model with it [rus](https://github.com/VasilyBoychuk/cvints/blob/master/examples/rus/Check%20dataset.ipynb) 
