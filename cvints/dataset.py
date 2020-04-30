@@ -7,7 +7,7 @@ from random import sample
 import cv2
 from matplotlib import pyplot as plt
 import seaborn as sns
-
+from os import listdir
 
 GREEN = (0, 255, 0)
 
@@ -30,33 +30,53 @@ class Dataset:
             The number of images to load to the Dataset if `is_sampled` is True
     """
 
-    def __init__(self, path_to_data, path_to_annotations_file, is_sampled=False, sample_size=5,
-                 model_evaluation_results=None):
+    def __init__(self, path_to_data, path_to_annotations_file, is_sampled=False, sample_size=5):
         self.path_to_data = path_to_data
+        if self.path_to_data is not None:
+            self.filenames = listdir(self.path_to_data)
         self.path_to_annotations_file = path_to_annotations_file
         self.is_sampled = is_sampled
         self.path_to_evaluations_results_file = None
-        self.model_evaluation_results = model_evaluation_results
+
         if self.path_to_annotations_file:
-            with open(self.path_to_annotations_file, 'r') as f:
+            with open(self.path_to_annotations_file, "r") as f:
                 annotations_data = json.load(f)
 
         if is_sampled:
-            sampled_images_info = sample(annotations_data['images'], sample_size)
-            sampled_images_ids = [x['id'] for x in sampled_images_info]
-            sampled_annotations_data = [x for x in annotations_data['annotations'] if
-                                        x['image_id'] in sampled_images_ids]
-            self.annotations = {'images_info': sampled_images_info, 'annotations_info': sampled_annotations_data}
+            sampled_images_info = sample(annotations_data["images"], sample_size)
+            sampled_images_ids = [x["id"] for x in sampled_images_info]
+            sampled_annotations_data = [
+                x
+                for x in annotations_data["annotations"]
+                if x["image_id"] in sampled_images_ids
+            ]
+            self.annotations = {
+                "images_info": sampled_images_info,
+                "annotations_info": sampled_annotations_data,
+            }
 
         else:
-            images_info = annotations_data['images']
-            annotations_data = annotations_data['annotations']
-            self.annotations = {'images_info': images_info, 'annotations_info': annotations_data}
+            images_info = annotations_data["images"]
+            annotations_data = annotations_data["annotations"]
+            self.annotations = {
+                "images_info": images_info,
+                "annotations_info": annotations_data,
+            }
 
+    def __len__(self):
+        result = 0
+        if self.filenames is not None:
+            result = len(self.filenames)
+        return result
+    
     @classmethod
     def get_subset(cls, dataset, size=5):
-        return cls(path_to_data=dataset.path_to_data, path_to_annotations_file=dataset.path_to_annotations_file,
-                   is_sampled=True, sample_size=size)
+        return cls(
+            path_to_data=dataset.path_to_data,
+            path_to_annotations_file=dataset.path_to_annotations_file,
+            is_sampled=True,
+            sample_size=size,
+        )
 
 
 class ObjectDetectionDataset(Dataset):
@@ -81,7 +101,7 @@ class ObjectDetectionDataset(Dataset):
         super(ObjectDetectionDataset, self).__init__(path_to_data, path_to_annotations_file, is_sampled, sample_size)
 
     def get_images_ids(self):
-        return [x['id'] for x in self.annotations['images_info']]
+        return [x["id"] for x in self.annotations["images_info"]]
 
     def draw_gt_bboxes(self, draw_bboxes_separately=False, bbox_line_width=3):
         """ Draw ground truth bounding boxes
@@ -99,19 +119,25 @@ class ObjectDetectionDataset(Dataset):
             None
         """
         shown = False
-        images_info = self.annotations['images_info']
-        annotation_info = self.annotations['annotations_info']
+        images_info = self.annotations["images_info"]
+        annotation_info = self.annotations["annotations_info"]
         for each_image in images_info:
-            image_path = self.path_to_data + '/' + each_image['file_name']
-            image_id = each_image['id']
-            annotations = [x for x in annotation_info if x['image_id'] == image_id]
+            image_path = self.path_to_data + "/" + each_image["file_name"]
+            image_id = each_image["id"]
+            annotations = [x for x in annotation_info if x["image_id"] == image_id]
             img = cv2.imread(image_path, cv2.IMREAD_COLOR)
             img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
             for each_gt in annotations:
-                cv2.rectangle(img, (each_gt['bbox'][0], each_gt['bbox'][1]),
-                              (each_gt['bbox'][0] + each_gt['bbox'][2],
-                               each_gt['bbox'][1] + each_gt['bbox'][3]),
-                              GREEN, bbox_line_width)
+                cv2.rectangle(
+                    img,
+                    (each_gt["bbox"][0], each_gt["bbox"][1]),
+                    (
+                        each_gt["bbox"][0] + each_gt["bbox"][2],
+                        each_gt["bbox"][1] + each_gt["bbox"][3],
+                    ),
+                    GREEN,
+                    bbox_line_width,
+                )
                 if draw_bboxes_separately:
                     plt.imshow(img)
                     plt.show()
@@ -138,6 +164,7 @@ class HumanDetectionDataset(ObjectDetectionDataset):
         samples_number: int
             The number of images to load to the Dataset if `is_sampled` is True
     """
+
     def __init__(self, path_to_data, path_to_annotations_file, is_sampled=False, sample_size=5):
         super(HumanDetectionDataset, self).__init__(path_to_data, path_to_annotations_file, is_sampled, sample_size)
 
@@ -154,11 +181,11 @@ class HumanDetectionDataset(ObjectDetectionDataset):
             ----------
             None
         """
-        images_number = len(self.annotations['images_info'])
-        total_person_number = len(self.annotations['annotations_info'])
+        images_number = len(self.annotations["images_info"])
+        total_person_number = len(self.annotations["annotations_info"])
         persons_per_image_dict = {}
-        for each_image_info in self.annotations['annotations_info']:
-            img_id = each_image_info['image_id']
+        for each_image_info in self.annotations["annotations_info"]:
+            img_id = each_image_info["image_id"]
             if img_id not in persons_per_image_dict.keys():
                 persons_per_image_dict[img_id] = 1
             else:
@@ -169,14 +196,18 @@ class HumanDetectionDataset(ObjectDetectionDataset):
         median_persons_per_image = np.median(persons_per_image_list)
         std_persons_per_image = np.std(persons_per_image_list)
 
-        print('Images number in dataset = {}'.format(images_number))
-        print('Persons number in dataset = {}'.format(total_person_number))
-        print('Mean value of persons per image = {:.2f}'.format(mean_persons_per_image))
-        print('Median value of persons per image = {:.2f}'.format(median_persons_per_image))
-        print('Std value of persons per image = {:.2f}'.format(std_persons_per_image))
+        print("Images number in dataset = {}".format(images_number))
+        print("Persons number in dataset = {}".format(total_person_number))
+        print("Mean value of persons per image = {:.2f}".format(mean_persons_per_image))
+        print(
+            "Median value of persons per image = {:.2f}".format(
+                median_persons_per_image
+            )
+        )
+        print("Std value of persons per image = {:.2f}".format(std_persons_per_image))
 
         if with_plots:
-            plt.title('Persons per image distribution')
+            plt.title("Persons per image distribution")
             sns.distplot(persons_per_image_list, kde=False)
             plt.show()
 
