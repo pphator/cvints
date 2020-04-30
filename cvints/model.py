@@ -7,7 +7,7 @@ import json
 IOU_THRESHOLD_DEFAULT = 0.5
 
 
-class Model:
+class BaseModel:
     """ Base class for models which results we want to explore with this lib
 
     """
@@ -21,20 +21,20 @@ class Model:
         self.evaluation_results = None
 
     def _load_config(self):
-        pass
+        raise NotImplementedError('load_processing_results should be implemented in child classes')
 
     def evaluate(self):
         pass
 
     def load_processing_results(self):
-        pass
+        raise NotImplementedError('load_processing_results should be implemented in child classes')
 
-    def _check_processing_results(self):
+    def _check_processing_results(self, processing_results_info):
         # TODO: compare results file with dataset
         pass
 
 
-class ObjectDetectionModel(Model):
+class ObjectDetectionModel(BaseModel):
     def __init__(self, name="default", path_to_config=None, dataset=None, path_to_processing_results=None):
         super(ObjectDetectionModel, self).__init__(name, path_to_config, dataset, path_to_processing_results)
 
@@ -46,19 +46,18 @@ class ObjectDetectionModel(Model):
         except Exception as err:
             pass
 
-    def load_test_dataset(self, test_dataset):
-        pass
+    def _check_processing_results(self, processing_results_info):
+        images_number_in_processing_results = processing_results_info['info']['images_number']
+        assert images_number_in_processing_results == len(self.dataset)
 
-    def load_detection_results(self):
+    def load_processing_results(self):
         # load whole file
         if self.path_to_processing_results:
             with open(self.path_to_processing_results, "r") as f:
-                detection_results = json.load(f)
-        # select images from loaded part of test dataset
-        loaded_test_images_ids = self.dataset.get_images_ids()
-        self.detection_results = [
-            x for x in detection_results if x["image_id"] in loaded_test_images_ids
-        ]
+                processing_results_info = json.load(f)
+        self._check_processing_results(processing_results_info)
+        processing_results = processing_results_info['results']
+        self.processing_results = processing_results
 
     @staticmethod
     def get_iou(pred_box, gt_box):
