@@ -41,8 +41,8 @@ class BaseModel:
 
 
 class ObjectDetectionModel(BaseModel):
-    def __init__(self, name="default", config=None, dataset=None, path_to_processing_results=None):
-        super(ObjectDetectionModel, self).__init__(name, config, dataset, path_to_processing_results)
+    def __init__(self, config=None, dataset=None, path_to_processing_results=None):
+        super(ObjectDetectionModel, self).__init__(config, dataset, path_to_processing_results)
 
     def create_config(self, name, input_size=(224, 224), nms=False):
         config = {'name': name,
