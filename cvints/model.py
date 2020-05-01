@@ -12,11 +12,11 @@ class BaseModel:
 
     """
 
-    def __init__(self, config=None, dataset=None, path_to_processing_results=None):
+    def __init__(self, config=None):
         self.name = None
         self.config = config
-        self.dataset = dataset
-        self.path_to_processing_results = path_to_processing_results
+        self.dataset = None
+        self.path_to_processing_results = None
         self.processing_results = None
         self.evaluation_results = None
         self.input_size = None
@@ -41,8 +41,8 @@ class BaseModel:
 
 
 class ObjectDetectionModel(BaseModel):
-    def __init__(self, config=None, dataset=None, path_to_processing_results=None):
-        super(ObjectDetectionModel, self).__init__(config, dataset, path_to_processing_results)
+    def __init__(self, config=None):
+        super(ObjectDetectionModel, self).__init__(config)
 
     def create_config(self, name, input_size=(224, 224), nms=False):
         config = {'name': name,
