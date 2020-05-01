@@ -68,7 +68,7 @@ class Dataset:
         if self.filenames is not None:
             result = len(self.filenames)
         return result
-    
+
     @classmethod
     def get_subset(cls, dataset, size=5):
         return cls(
@@ -77,6 +77,26 @@ class Dataset:
             is_sampled=True,
             sample_size=size,
         )
+
+    def get_ids_by_filenames(self, filenames):
+        """
+        Returns the list of images ids in filenames array order
+
+        Parameters
+        ----------
+        filenames : array-like
+
+        Returns
+        -------
+        images_ids : array-like
+        """
+        images_ids = []
+
+        for each_filename in filenames:
+            item = next(x for x in self.annotations['images_info'] if x['file_name'] == each_filename)
+            images_ids.append(item['id'])
+
+        return images_ids
 
 
 class ObjectDetectionDataset(Dataset):
