@@ -12,13 +12,19 @@ class BaseModel:
 
     """
 
-    def __init__(self, name="default", path_to_config=None, dataset=None, path_to_processing_results=None):
-        self.name = name
-        self.path_to_config = path_to_config
+    def __init__(self, config=None, dataset=None, path_to_processing_results=None):
+        self.name = None
+        self.config = config
         self.dataset = dataset
         self.path_to_processing_results = path_to_processing_results
         self.processing_results = None
         self.evaluation_results = None
+        self.input_size = None
+        if self.config is not None:
+            self._load_config()
+
+    def create_config(self, name, *args, **kwargs):
+        raise NotImplementedError('load_processing_results should be implemented in child classes')
 
     def _load_config(self):
         raise NotImplementedError('load_processing_results should be implemented in child classes')
@@ -35,16 +41,19 @@ class BaseModel:
 
 
 class ObjectDetectionModel(BaseModel):
-    def __init__(self, name="default", path_to_config=None, dataset=None, path_to_processing_results=None):
-        super(ObjectDetectionModel, self).__init__(name, path_to_config, dataset, path_to_processing_results)
+    def __init__(self, name="default", config=None, dataset=None, path_to_processing_results=None):
+        super(ObjectDetectionModel, self).__init__(name, config, dataset, path_to_processing_results)
+
+    def create_config(self, name, input_size=(224, 224), nms=False):
+        config = {'name': name,
+                  'input_size': input_size,
+                  'NMS': nms}
+        self.config = config
 
     def _load_config(self):
-        with open(self.path_to_config, 'r') as f:
-            model_config = json.load(f)
-        try:
-            self.NMS = model_config['NMS']
-        except Exception as err:
-            pass
+        self.name = self.config['name']
+        self.input_size = self.config['input_size']
+        self.NMS = self.config['NMS']
 
     def _check_processing_results(self, processing_results_info):
         images_number_in_processing_results = processing_results_info['info']['images_number']
