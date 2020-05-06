@@ -1,3 +1,6 @@
+from collections import defaultdict
+
+
 class ProcessingResults:
     def __init__(self):
         self.results = []
@@ -9,6 +12,12 @@ class ObjectDetectionResults(ProcessingResults):
         self.bboxes = []
         self.scores = []
         self.labels = []
+
+    def __str__(self):
+        return "member of ObjectDetectionResults"
+
+    def __len__(self):
+        return len(self.results)
 
     def load_results(self, results, images_ids):
         """
@@ -27,16 +36,23 @@ class ObjectDetectionResults(ProcessingResults):
             if len(results) > 0:
                 # every item in the list should have bboxes, scores and labels fields
                 for each_image_results, image_id in zip(results, images_ids):
+                    img_results = {'image_id': image_id,
+                                   'detections': defaultdict(list)}
+
                     if 'boxes' in each_image_results and \
                             'scores' in each_image_results and \
                             'labels' in each_image_results:
                         for b, s, l in zip(each_image_results['boxes'].numpy(),
                                            each_image_results['scores'].numpy(),
                                            each_image_results['labels'].numpy()):
-                            self.results.append({'image_id': image_id,
-                                                 'bbox': b,
-                                                 'score': s,
-                                                 'label': l})
+
+                            img_results['detections'][str(l)].append((b, s))
+
+                            self.results.append(img_results)
+                            # self.results.append({'image_id': image_id,
+                            #                      'bbox': b,
+                            #                      'score': s,
+                            #                      'label': l})
                     else:
                         raise Exception
             else:
