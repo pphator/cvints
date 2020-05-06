@@ -8,6 +8,9 @@ import cv2
 from matplotlib import pyplot as plt
 import seaborn as sns
 from os import listdir
+from PIL import Image
+from PIL import ImageDraw
+from cvints import visialization as cvints_vis
 
 GREEN = (0, 255, 0)
 
@@ -98,6 +101,11 @@ class Dataset:
 
         return images_ids
 
+    def get_annotations(self, filename):
+        raise NotImplementedError('load_processing_results should be implemented in child classes')
+
+
+
 
 class ObjectDetectionDataset(Dataset):
     """
@@ -122,6 +130,25 @@ class ObjectDetectionDataset(Dataset):
 
     def get_images_ids(self):
         return [x["id"] for x in self.annotations["images_info"]]
+
+    def get_annotations(self, filename):
+        image_id = self.get_ids_by_filenames([filename])[0]
+        annotations = []
+        for each in self.annotations['annotations_info']:
+            if each['image_id'] == image_id:
+                annotations.append({'bbox': each['bbox'],
+                                    'label': each['category_id']})
+        return annotations
+
+    def show_images(self, with_bboxes=False):
+        for each_image in self.filenames:
+            img = Image.open(self.path_to_data + '\\' + each_image)
+            annotations = self.get_annotations(each_image)
+            if with_bboxes:
+                img = cvints_vis.put_bboxes_to_image(img, annotations)
+
+            # img.show()
+
 
     def draw_gt_bboxes(self, draw_bboxes_separately=False, bbox_line_width=3):
         """ Draw ground truth bounding boxes
