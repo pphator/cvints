@@ -2,6 +2,11 @@
 # -*- coding: utf-8 -*-
 import numpy as np
 import json
+from cvints.utils import COCO_INSTANCE_CATEGORY_NAMES
+from cvints import utils as cvints_utils
+# from cvints import ProcessingResults
+
+from collections import defaultdict
 
 
 IOU_THRESHOLD_DEFAULT = 0.5
@@ -38,6 +43,9 @@ class BaseModel:
     def _check_processing_results(self, processing_results_info):
         # TODO: compare results file with dataset
         pass
+
+    def set_processing_results(self, processing_results):
+        self.processing_results = processing_results
 
 
 class ObjectDetectionModel(BaseModel):
@@ -89,6 +97,44 @@ class ObjectDetectionModel(BaseModel):
         iou = inters / uni
 
         return iou
+
+    def set_processing_results(self, processing_results):
+        """
+            Adaptation raw processing result to this model
+
+        Parameters
+        ----------
+        processing_results : ProcessingResults
+
+        Returns
+        -------
+        """
+        # each bbox we should multiply by  raw_image_hight/model_image_size
+        results = []
+        for each_result in processing_results.results:
+            image_id = each_result['image_id']
+            width, height = each_result['image_size']
+            width_coef = width / self.config['input_size'][0]
+            heigh_coef = height / self.config['input_size'][1]
+            post_proc_results = defaultdict(list)
+            for each_label in each_result['detections'].keys():
+                post_proc_detections = []
+                for each_detection in each_result['detections'][str(each_label)]:
+                    raw_bbox = each_detection[0]
+                    score = each_detection[1]
+                    post_proc_bbox = [raw_bbox[0]*width_coef,
+                                      raw_bbox[1]*heigh_coef,
+                                      raw_bbox[2]*width_coef - raw_bbox[0]*width_coef,
+                                      raw_bbox[3]*heigh_coef - raw_bbox[1]*heigh_coef]
+                    post_proc_detections.append((post_proc_bbox, score))
+                post_proc_results[each_label] = post_proc_detections
+            results.append({'image_id': image_id,
+                            'image_size': (width, height),
+                            'detections': post_proc_results})
+
+        processing_results.results = results
+        self.processing_results = processing_results
+        return self.processing_results
 
     def evaluate(self, iou_threshold=IOU_THRESHOLD_DEFAULT):
         """ Compute metrics for detection results
