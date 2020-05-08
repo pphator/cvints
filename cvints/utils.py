@@ -1,4 +1,5 @@
 import numpy as np
+from collections import defaultdict
 
 
 DEFAULT_SCORES_THRESHOLD = 0.5
@@ -110,19 +111,98 @@ def low_scores_filter(processing_results, threshold=DEFAULT_SCORES_THRESHOLD):
     Parameters
     ----------
     processing_results : ProcessingResults
+    threshold : float
 
     Returns
     -------
     new_results : ProcessingResults
     """
 
-    new_results = [x for x in processing_results.results if x['score'] > threshold]
+    new_results = []
+
+    for each_result in processing_results.results:
+        image_id = each_result['image_id']
+        width, height = each_result['image_size']
+
+        post_proc_results = defaultdict(list)
+        for each_label in each_result['detections'].keys():
+            post_proc_detections = []
+            for each_detection in each_result['detections'][str(each_label)]:
+                bbox = each_detection[0]
+                score = each_detection[1]
+                if score >= threshold:
+                    post_proc_detections.append((bbox, score))
+            post_proc_results[each_label] = post_proc_detections
+        new_results.append({'image_id': image_id,
+                        'image_size': (width, height),
+                        'detections': post_proc_results})
+
     processing_results.set_results(new_results)
     return processing_results
 
 
-def non_max_suppression(bboxes, scores, threshold=0.5):
-    # remove all boxes with scores lower than 0.5
+def get_iou(bbox1, bbox2):
+    """
+
+
+    Parameters
+    ----------
+    bbox1 : list
+    :param bbox2:
+
+    Notes
+    -----
+    bbox[0] = x1
+    bbox[1] = y1
+    bbox[2] = x2
+    bbox[3] = y2
+    """
+
+    bbox1_x1 = bbox1[0]
+    bbox1_y1 = bbox1[1]
+    bbox1_x2 = bbox1[0] + bbox1[2]
+    bbox1_y2 = bbox1[1] + bbox1[3]
+
+    bbox2_x1 = bbox2[0]
+    bbox2_y1 = bbox2[1]
+    bbox2_x2 = bbox2[0] + bbox2[2]
+    bbox2_y2 = bbox2[1] + bbox2[3]
+
+    ixmin = max(bbox1_x1, bbox2_x1)
+    ixmax = min(bbox1_x2, bbox2_x2)
+    iymin = max(bbox1_y1, bbox2_y1)
+    iymax = min(bbox1_y2, bbox2_y2)
+
+    iw = np.maximum(ixmax - ixmin + 1.0, 0.0)
+    ih = np.maximum(iymax - iymin + 1.0, 0.0)
+
+    inters = iw * ih
+
+    uni = (
+            (bbox1_x2 - bbox1_x1 + 1.0) * (bbox1_y2 - bbox1_y1 + 1.0)
+            + (bbox2_x2 - bbox2_x1 + 1.0) * (bbox2_y2 - bbox2_y1 + 1.0)
+            - inters
+    )
+
+    iou = inters / uni
+
+    return iou
+
+
+def non_max_suppression(bboxes, scores, iou_threshold=0.5):
+    """
+    This function could be applied to the bboxes and scores of common label
+
+    Parameters
+    ----------
+    bboxes : array-like
+    scores : array-like
+    iou_threshold : float
+
+    Returns
+    -------
+    """
+    # sort bboxes by scores (from highest to lowest value)
     sort_index = np.argsort(scores)[::-1]
 
     # create empty lists to return
@@ -133,20 +213,42 @@ def non_max_suppression(bboxes, scores, threshold=0.5):
     bboxes_to_return.append(bboxes[sort_index[0]])
     scores_to_return.append(scores[sort_index[0]])
 
-    # remove from bboxes and scores items with index sort_index[0]
-    np.delete(bboxes, sort_index[0])
-    np.delete(scores, sort_index[0])
+    while len(bboxes) > 0:
+        # create the list of indices which will be deleted from sort_index by IoU
+        indices_to_remove = []
+        current_bbox = bboxes[sort_index[0]]
 
-    # remove from sort_index the first element
-    if sort_index.size > 1:
-        sort_index = sort_index[1:]
+        # select bboxes which have IoU value with current bbox higher than threshold
+        for each_index in sort_index[1:]:
 
+            iou_val = get_iou(current_bbox, bboxes[each_index])
+            print(iou_val)
+            if iou_val >= iou_threshold:
+                indices_to_remove.append(each_index)
 
+        # remove elements with indices_to_remove from bboxes and scores and from sort_index
+        bboxes = np.delete(bboxes, indices_to_remove, axis=0)
+        scores = np.delete(scores, indices_to_remove)
 
+        # and remove current bbox from bboxes
+        bboxes = np.delete(bboxes, sort_index[0], axis=0)
+        scores = np.delete(scores, sort_index[0])
 
-    # for ind in range(len(sort_index)):
-    #     current_index = sort_index[ind]
-    #     bbox = bboxes[current_index]
+        # if there are some items in the bboxes and scores - prepare to next loot iteration
+        if len(scores) > 1:
+            sort_index = np.argsort(scores)[::-1]
+
+            bboxes_to_return.append(bboxes[sort_index[0]])
+            scores_to_return.append(scores[sort_index[0]])
+        # if there is only one item - put in into bboxes to return
+        elif len(scores) == 1:
+            bboxes_to_return.append(bboxes[-1])
+            scores_to_return.append(scores[-1])
+
+            bboxes = np.delete(bboxes, -1, axis=0)
+            scores = np.delete(scores, -1)
+
+    return bboxes_to_return, scores_to_return
 
 
 def non_max_suppression_slow(boxes, threshold=0.5):
