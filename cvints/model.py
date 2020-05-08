@@ -2,10 +2,6 @@
 # -*- coding: utf-8 -*-
 import numpy as np
 import json
-from cvints.utils import COCO_INSTANCE_CATEGORY_NAMES
-from cvints import utils as cvints_utils
-# from cvints import ProcessingResults
-
 from collections import defaultdict
 
 
