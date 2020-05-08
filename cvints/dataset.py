@@ -11,6 +11,7 @@ from os import listdir
 from PIL import Image
 from PIL import ImageDraw
 from cvints import visialization as cvints_vis
+from collections import defaultdict
 
 GREEN = (0, 255, 0)
 
@@ -81,6 +82,30 @@ class Dataset:
             sample_size=size,
         )
 
+    def get_images_info_by_filenames(self, filenames):
+        """
+        Method to get id and size of all images by their filenames
+
+        Parameters
+        ----------
+        filenames : list
+
+        :return:
+        """
+        images_info = []
+        for each_filename in filenames:
+            item = next(x for x in self.annotations['images_info'] if x['file_name'] == each_filename)
+            image_path = self.path_to_data + each_filename
+            image = Image.open(image_path)
+            images_info.append({'id': item['id'],
+                                'size': image.size})
+
+        return images_info
+
+    def get_filename_by_id(self, image_id):
+        item = next(x for x in self.annotations['images_info'] if x['id'] == image_id)['file_name']
+        return item
+
     def get_ids_by_filenames(self, filenames):
         """
         Returns the list of images ids in filenames array order
@@ -103,8 +128,6 @@ class Dataset:
 
     def get_annotations(self, filename):
         raise NotImplementedError('load_processing_results should be implemented in child classes')
-
-
 
 
 class ObjectDetectionDataset(Dataset):
@@ -133,65 +156,63 @@ class ObjectDetectionDataset(Dataset):
 
     def get_annotations(self, filename):
         image_id = self.get_ids_by_filenames([filename])[0]
-        annotations = []
+        annotations = defaultdict(list)
         for each in self.annotations['annotations_info']:
             if each['image_id'] == image_id:
-                annotations.append({'bbox': each['bbox'],
-                                    'label': each['category_id']})
+                annotations[str(each['category_id'])].append((each['bbox']))
         return annotations
 
-    def show_images(self, with_bboxes=False):
+    def show_images(self, with_bboxes=False, annotations=None):
         for each_image in self.filenames:
             img = Image.open(self.path_to_data + '\\' + each_image)
-            annotations = self.get_annotations(each_image)
             if with_bboxes:
+                if annotations is None:
+                    annotations = self.get_annotations(each_image)
                 img = cvints_vis.put_bboxes_to_image(img, annotations)
+            img.show()
 
-            # img.show()
-
-
-    def draw_gt_bboxes(self, draw_bboxes_separately=False, bbox_line_width=3):
-        """ Draw ground truth bounding boxes
-
-            Parameters
-            ----------
-            draw_bboxes_separately : bool
-                if True, each bounding box will be drawn sequentially on the new canvas with the picture
-                if False, all bounding box will be drawn simultaneously on the one canvas with the picture
-            bbox_line_width : int
-                the width of the bboxes line
-
-            Returns
-            ----------
-            None
-        """
-        shown = False
-        images_info = self.annotations["images_info"]
-        annotation_info = self.annotations["annotations_info"]
-        for each_image in images_info:
-            image_path = self.path_to_data + "/" + each_image["file_name"]
-            image_id = each_image["id"]
-            annotations = [x for x in annotation_info if x["image_id"] == image_id]
-            img = cv2.imread(image_path, cv2.IMREAD_COLOR)
-            img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
-            for each_gt in annotations:
-                cv2.rectangle(
-                    img,
-                    (each_gt["bbox"][0], each_gt["bbox"][1]),
-                    (
-                        each_gt["bbox"][0] + each_gt["bbox"][2],
-                        each_gt["bbox"][1] + each_gt["bbox"][3],
-                    ),
-                    GREEN,
-                    bbox_line_width,
-                )
-                if draw_bboxes_separately:
-                    plt.imshow(img)
-                    plt.show()
-                    shown = True
-            if not shown:
-                plt.imshow(img)
-                plt.show()
+    # def draw_gt_bboxes(self, draw_bboxes_separately=False, bbox_line_width=3):
+    #     """ Draw ground truth bounding boxes
+    #
+    #         Parameters
+    #         ----------
+    #         draw_bboxes_separately : bool
+    #             if True, each bounding box will be drawn sequentially on the new canvas with the picture
+    #             if False, all bounding box will be drawn simultaneously on the one canvas with the picture
+    #         bbox_line_width : int
+    #             the width of the bboxes line
+    #
+    #         Returns
+    #         ----------
+    #         None
+    #     """
+    #     shown = False
+    #     images_info = self.annotations["images_info"]
+    #     annotation_info = self.annotations["annotations_info"]
+    #     for each_image in images_info:
+    #         image_path = self.path_to_data + "/" + each_image["file_name"]
+    #         image_id = each_image["id"]
+    #         annotations = [x for x in annotation_info if x["image_id"] == image_id]
+    #         img = cv2.imread(image_path, cv2.IMREAD_COLOR)
+    #         img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+    #         for each_gt in annotations:
+    #             cv2.rectangle(
+    #                 img,
+    #                 (each_gt["bbox"][0], each_gt["bbox"][1]),
+    #                 (
+    #                     each_gt["bbox"][0] + each_gt["bbox"][2],
+    #                     each_gt["bbox"][1] + each_gt["bbox"][3],
+    #                 ),
+    #                 GREEN,
+    #                 bbox_line_width,
+    #             )
+    #             if draw_bboxes_separately:
+    #                 plt.imshow(img)
+    #                 plt.show()
+    #                 shown = True
+    #         if not shown:
+    #             plt.imshow(img)
+    #             plt.show()
 
 
 class HumanDetectionDataset(ObjectDetectionDataset):
