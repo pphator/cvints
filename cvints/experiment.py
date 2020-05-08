@@ -3,6 +3,7 @@
 import numpy as np
 from cvints.utils import MS_COCO_CATEGORIES_DICT, COCO_INSTANCE_CATEGORY_NAMES
 import cvints.utils as cvints_utils
+import cvints.visialization as cvints_vis
 
 
 class Tasks:
@@ -13,11 +14,14 @@ class Tasks:
 
 
 class Experiment:
+    """
+        Description of intercommunication data and models with some results in the end
+    """
     def __init__(self, task, model, dataset, results=None):
         self.task = task
         self.model = model
         self.dataset = dataset
-        self.results = []
+        self.results = results
 
     def describe(self):
         print('Number of images: {}'.format(len(self.dataset)))
@@ -25,22 +29,50 @@ class Experiment:
         print(self.model.config)
 
     def filer_results_by_scores(self, scores_threshold=0.5):
-
-        self.results = cvints_utils.low_scores_filter()
+        self.results = cvints_utils.low_scores_filter(self.results, scores_threshold)
 
     def apply_nms(self, nms_threshold=0.75):
-        for each_result in self.results:
-            categories = each_result['labels'].numpy()
-            bboxes = each_result['boxes'].numpy()
-            scores = each_result['scores'].numpy()
-            unique_categories = np.unique(each_result['labels'].numpy())
-            for each_category in unique_categories:
-                print('Processing of {}'.format(COCO_INSTANCE_CATEGORY_NAMES[each_category]))
-                indices = np.where(categories == each_category)
-                this_cat_boxes = bboxes[indices]
-                this_cat_scores = scores[indices]
 
-                non_max_suppression(this_cat_boxes, this_cat_scores)
+        for i in range(len(self.results)):
+            image_id = self.results.results[i]['image_id']
+            image_filename = self.dataset.get_filename_by_id(image_id)
+            print(image_filename)
+            detections = self.results.results[i]['detections']
+            # categories = each_result['labels']
+            # bboxes = each_result['boxes']
+            # scores = each_result['scores']
+            # unique_categories = np.unique(each_result['labels'])
+            unique_categories = detections.keys()
+            for each_category in unique_categories:
+                print('Processing of {}'.format(COCO_INSTANCE_CATEGORY_NAMES[int(each_category)]))
+
+                # indices = np.where(categories == each_category)
+                this_cat_boxes = [x[0] for x in detections[each_category]]
+                this_cat_scores = [x[1] for x in detections[each_category]]
+                print('{} items in the image'.format(len(this_cat_boxes)))
+                if len(this_cat_boxes) > 1:
+                    new_boxes, new_scores = cvints_utils.non_max_suppression(this_cat_boxes, this_cat_scores, nms_threshold)
+                    self.results.results[i]['detections'][each_category] = [(b, s) for b, s in zip(new_boxes, new_scores)]
+
+    def show_images(self, with_annotations=False):
+        """
+        Show images with predictions
+
+
+        """
+
+        # get annotations
+
+        for each_image_info in self.dataset.annotations['images_info']:
+            file_name = each_image_info['file_name']
+            image_id = each_image_info['id']
+            this_image_prediction = self.results.get_results_by_image(image_id)
+            image_path = self.dataset.path_to_data + file_name
+            image = cvints_vis.open_image(image_path)
+            image = cvints_vis.put_bboxes_to_image(image, this_image_prediction)
+
+            cvints_vis.show_image(image)
+
 
 
 
@@ -51,5 +83,4 @@ class Experiment:
         :return:
         """
         self.filer_results_by_scores()
-
-        pass
+        self.apply_nms()
