@@ -1,21 +1,55 @@
-from cvints import HumanDetectionDataset
-from cvints import PersonDetectionEvaluator
+from cvints import ObjectDetectionDataset
 from cvints import ObjectDetectionModel
-from cvints import visialization as vcv
+from cvints.processing_results import ObjectDetectionResults
+from cvints import Experiment
+from cvints.experiment import Tasks
+import pickle
+from pprint import PrettyPrinter
+
 
 if __name__ == '__main__':
-    path_to_data = 'C:\\Users\\vboychuk\\Work\\Projects\\Conference room\\Dataset\\PIC_2.0\\image\\val'
-    path_to_annotations_file = 'C:\\Users\\vboychuk\\Work\\Projects\\Conference room\\Dataset\\PIC_2.0\\val_.json'
-    path_to_model_evaluation_results_file = 'C:\\Users\\vboychuk\\Work\\Projects\\cvints\\examples\\ssd_mobilenet_v2_coco_33_22_1_4_2020.json'
+    pprinter = PrettyPrinter()
 
-    test_dataset = HumanDetectionDataset(path_to_data, path_to_annotations_file)
+    task = Tasks.OBJECT_DETECTION
 
-    model = ObjectDetectionModel(name='Jetson Nano human detector (ssd_mobilenet_v2_coco)', test_dataset=test_dataset,
-                                 path_to_detection_results_file=path_to_model_evaluation_results_file)
+    path_to_images = '..\\Datasets\\detection\\desktopco\\images\\'
+    path_to_annotation_file = '..\\Datasets\\detection\\desktopco\\annotations\\instances_default.json'
+    path_to_processing_results = 'rus\\fasterrcnn_resnet50_desktopco.txt'
+    path_to_processed_files_filenames = 'rus\\desktopco_processed_files_filenames.txt'
 
-    model.load_detection_results()
-    precision, recall, miss_rate, results = model.evaluate()
-    # print(model.evaluation_results)
-    vcv.miss_rate_per_annotated_number(model)
-    print('Precision = {0:.2f}, Recall = {1:.2f}, Miss rate = {2:.2f}'.format(precision, recall, miss_rate))
+    dataset = ObjectDetectionDataset(path_to_data=path_to_images,
+                                     path_to_annotations_file=path_to_annotation_file)
 
+    sample_ds = ObjectDetectionDataset.get_subset(dataset, size=1)
+
+    dataset.show_images(with_bboxes=True)
+
+    with open(path_to_processed_files_filenames, 'rb') as in_file:
+        processed_images_filenames = pickle.load(in_file)
+
+    processed_images_ids = dataset.get_ids_by_filenames(processed_images_filenames)
+    processed_images_info = dataset.get_images_info_by_filenames(processed_images_filenames)
+
+    processing_results = ObjectDetectionResults()
+
+    with open(path_to_processing_results, "rb") as fp:  # Unpickling
+        raw_processing_results = pickle.load(fp)
+
+    processing_results.load_results(raw_processing_results, processed_images_info)
+
+    model_config = {'name': 'fasterrcnn_resnet50',
+                    'input_size': (300, 300),
+                    'NMS': False}
+
+    model = ObjectDetectionModel(config=model_config)
+    processing_results = model.set_processing_results(processing_results)
+
+    experiment = Experiment(task, model, dataset, processing_results)
+
+    experiment.filer_results_by_scores(scores_threshold=0.5)
+
+    experiment.show_images()
+    #
+    experiment.apply_nms(nms_threshold=0.01)
+    #
+    experiment.show_images()
