@@ -4,12 +4,10 @@
 import json
 import numpy as np
 from random import sample
-import cv2
 from matplotlib import pyplot as plt
 import seaborn as sns
 from os import listdir
 from PIL import Image
-from PIL import ImageDraw
 from cvints import visialization as cvints_vis
 from collections import defaultdict
 
@@ -170,49 +168,6 @@ class ObjectDetectionDataset(Dataset):
                     annotations = self.get_annotations(each_image)
                 img = cvints_vis.put_bboxes_to_image(img, annotations)
             img.show()
-
-    # def draw_gt_bboxes(self, draw_bboxes_separately=False, bbox_line_width=3):
-    #     """ Draw ground truth bounding boxes
-    #
-    #         Parameters
-    #         ----------
-    #         draw_bboxes_separately : bool
-    #             if True, each bounding box will be drawn sequentially on the new canvas with the picture
-    #             if False, all bounding box will be drawn simultaneously on the one canvas with the picture
-    #         bbox_line_width : int
-    #             the width of the bboxes line
-    #
-    #         Returns
-    #         ----------
-    #         None
-    #     """
-    #     shown = False
-    #     images_info = self.annotations["images_info"]
-    #     annotation_info = self.annotations["annotations_info"]
-    #     for each_image in images_info:
-    #         image_path = self.path_to_data + "/" + each_image["file_name"]
-    #         image_id = each_image["id"]
-    #         annotations = [x for x in annotation_info if x["image_id"] == image_id]
-    #         img = cv2.imread(image_path, cv2.IMREAD_COLOR)
-    #         img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
-    #         for each_gt in annotations:
-    #             cv2.rectangle(
-    #                 img,
-    #                 (each_gt["bbox"][0], each_gt["bbox"][1]),
-    #                 (
-    #                     each_gt["bbox"][0] + each_gt["bbox"][2],
-    #                     each_gt["bbox"][1] + each_gt["bbox"][3],
-    #                 ),
-    #                 GREEN,
-    #                 bbox_line_width,
-    #             )
-    #             if draw_bboxes_separately:
-    #                 plt.imshow(img)
-    #                 plt.show()
-    #                 shown = True
-    #         if not shown:
-    #             plt.imshow(img)
-    #             plt.show()
 
 
 class HumanDetectionDataset(ObjectDetectionDataset):
