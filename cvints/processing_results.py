@@ -19,24 +19,28 @@ class ObjectDetectionResults(ProcessingResults):
     def __len__(self):
         return len(self.results)
 
-    def load_results(self, results, images_ids):
+    def load_results(self, results, images_info):
         """
         Load raw_results and perform it in association with images ids
 
         Parameters
         ----------
         results : array-like
-        images_ids : array-like
+        images_info : list
 
         Returns
         -------
 
         """
+
         if isinstance(results, list):
             if len(results) > 0:
                 # every item in the list should have bboxes, scores and labels fields
-                for each_image_results, image_id in zip(results, images_ids):
-                    img_results = {'image_id': image_id,
+
+                for each_image_results, image_info in zip(results, images_info):
+
+                    img_results = {'image_id': image_info['id'],
+                                   'image_size': image_info['size'],
                                    'detections': defaultdict(list)}
 
                     if 'boxes' in each_image_results and \
@@ -48,11 +52,7 @@ class ObjectDetectionResults(ProcessingResults):
 
                             img_results['detections'][str(l)].append((b, s))
 
-                            self.results.append(img_results)
-                            # self.results.append({'image_id': image_id,
-                            #                      'bbox': b,
-                            #                      'score': s,
-                            #                      'label': l})
+                        self.results.append(img_results)
                     else:
                         raise Exception
             else:
@@ -71,3 +71,7 @@ class ObjectDetectionResults(ProcessingResults):
 
     def set_results(self, results):
         self.results = results
+
+    def get_results_by_image(self, image_id):
+        item = next(item for item in self.results if item['image_id'] == image_id)
+        return item['detections']
