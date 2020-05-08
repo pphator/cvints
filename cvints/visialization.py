@@ -6,7 +6,7 @@ from PIL import Image
 from PIL import ImageDraw
 
 
-COLORS = ['#00ff88', '#ff0000', '#ff9800', '#ff023c', '#a2aca7', '#07aca7', '#070aa7']
+COLORS = ['#00ff88', '#ff0000', '#07aca7', '#ff9800', '#ff023c', '#a2aca7', '#070aa7']
 
 
 def draw_gt_with_predictions(model):
@@ -86,7 +86,32 @@ def miss_rate_per_annotated_number(model):
     plt.show()
 
 
-# def show_image(path_to_image)
+def show_image(image):
+    """
+    Function to show image
+
+    Parameters
+    ----------
+    image : PIL Image
+
+    """
+    image.show()
+
+
+def open_image(path_to_image):
+    """
+        Return PIL Image by path to the image
+
+    Parameters
+    ----------
+    path_to_image : str
+
+    Returns
+    -------
+    image : PIL Image
+    """
+    image = Image.open(path_to_image)
+    return image
 
 
 def put_bboxes_to_image(image, annotations):
@@ -94,8 +119,8 @@ def put_bboxes_to_image(image, annotations):
     Parameters
     ----------
     image : PIL Image
-    annotations : list
-        bboxes, scores and classes information for this image
+    annotations : dict
+        {cat_id: (bbox, score)}
 
     Returns
     -------
@@ -103,19 +128,17 @@ def put_bboxes_to_image(image, annotations):
     """
 
     # check how many categories there are in the annotations
-    categories = [x['label'] for x in annotations]
-    categories = list(set(categories))
-
+    categories = list(annotations.keys())
     colors = COLORS[:len(categories)]
 
     draw = ImageDraw.Draw(image)
     for cat_index in range(len(categories)):
         category = categories[cat_index]
-        for each_annotation in annotations:
-            if each_annotation['label'] == category:
-                draw.rectangle(((each_annotation['bbox'][0], each_annotation['bbox'][1]),
-                                (each_annotation['bbox'][0] + each_annotation['bbox'][2],
-                                 each_annotation['bbox'][1] + each_annotation['bbox'][3])),
-                               outline=colors[cat_index], width=5)
-    image.show()
+        each_category_annotations = annotations[category]
+        for each_annotation in each_category_annotations:
+            draw.rectangle(((each_annotation[0][0], each_annotation[0][1]),
+                            (each_annotation[0][0] + each_annotation[0][2],
+                             each_annotation[0][1] + each_annotation[0][3])),
+                           outline=colors[cat_index], width=5)
+
     return image
