@@ -34,8 +34,8 @@ class Dataset:
 
     def __init__(self, path_to_data, path_to_annotations_file, is_sampled=False, sample_size=5):
         self.path_to_data = path_to_data
-        if self.path_to_data is not None:
-            self.filenames = listdir(self.path_to_data)
+        # if self.path_to_data is not None:
+        #     self.filenames = listdir(self.path_to_data)
         self.path_to_annotations_file = path_to_annotations_file
         self.is_sampled = is_sampled
         self.path_to_evaluations_results_file = None
@@ -47,11 +47,8 @@ class Dataset:
         if is_sampled:
             sampled_images_info = sample(annotations_data["images"], sample_size)
             sampled_images_ids = [x["id"] for x in sampled_images_info]
-            sampled_annotations_data = [
-                x
-                for x in annotations_data["annotations"]
-                if x["image_id"] in sampled_images_ids
-            ]
+            sampled_annotations_data = [x for x in annotations_data["annotations"]
+                                        if x["image_id"] in sampled_images_ids]
             self.annotations = {
                 "images_info": sampled_images_info,
                 "annotations_info": sampled_annotations_data,
@@ -64,6 +61,9 @@ class Dataset:
                 "images_info": images_info,
                 "annotations_info": annotations_data,
             }
+
+        self.filenames = [x['file_name'] for x in sample_ds.annotations['images_info']]
+
 
     def __len__(self):
         result = 0
