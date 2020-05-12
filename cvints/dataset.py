@@ -62,7 +62,7 @@ class Dataset:
                 "annotations_info": annotations_data,
             }
 
-        self.filenames = [x['file_name'] for x in sample_ds.annotations['images_info']]
+        self.filenames = [x['file_name'] for x in self.annotations['images_info']]
 
 
     def __len__(self):
