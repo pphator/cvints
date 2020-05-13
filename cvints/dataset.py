@@ -7,6 +7,7 @@ from random import sample
 from matplotlib import pyplot as plt
 import seaborn as sns
 from os import listdir
+from tqdm import tqdm
 from PIL import Image
 from cvints import visialization as cvints_vis
 from collections import defaultdict
@@ -91,7 +92,8 @@ class Dataset:
         :return:
         """
         images_info = []
-        for each_filename in filenames:
+        for filename_ind in tqdm(range(len(filenames))):
+            each_filename = filenames[filename_ind]
             item = next(x for x in self.annotations['images_info'] if x['file_name'] == each_filename)
             image_path = self.path_to_data + each_filename
             image = Image.open(image_path)
