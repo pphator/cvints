@@ -65,7 +65,6 @@ class Dataset:
 
         self.filenames = [x['file_name'] for x in self.annotations['images_info']]
 
-
     def __len__(self):
         result = 0
         if self.filenames is not None:
@@ -89,7 +88,8 @@ class Dataset:
         ----------
         filenames : list
 
-        :return:
+        Returns
+        -------
         """
         images_info = []
         for filename_ind in tqdm(range(len(filenames))):
@@ -98,6 +98,7 @@ class Dataset:
             image_path = self.path_to_data + each_filename
             image = Image.open(image_path)
             images_info.append({'id': item['id'],
+                                'filename': each_filename,
                                 'size': image.size})
 
         return images_info
@@ -154,7 +155,7 @@ class ObjectDetectionDataset(Dataset):
     def get_images_ids(self):
         return [x["id"] for x in self.annotations["images_info"]]
 
-    def get_annotations(self, filename):
+    def get_image_annotations_by_filename(self, filename):
         image_id = self.get_ids_by_filenames([filename])[0]
         annotations = defaultdict(list)
         for each in self.annotations['annotations_info']:
@@ -167,9 +168,18 @@ class ObjectDetectionDataset(Dataset):
             img = Image.open(self.path_to_data + '\\' + each_image)
             if with_bboxes:
                 if annotations is None:
-                    annotations = self.get_annotations(each_image)
+                    annotations = self.get_image_annotations_by_filename(each_image)
                 img = cvints_vis.put_bboxes_to_image(img, annotations)
             img.show()
+
+
+class DesktopCODataset(ObjectDetectionDataset):
+    def __init__(self):
+        super(DesktopCODataset, self).__init__(path_to_data='..\\Datasets\\detection\\desktopco\\images\\',
+                                               path_to_annotations_file = '..\\Datasets\\detection\\desktopco\\annotations\\instances_default.json',
+                                               is_sampled=False)
+
+
 
 
 class HumanDetectionDataset(ObjectDetectionDataset):
