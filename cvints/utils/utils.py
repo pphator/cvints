@@ -1,3 +1,4 @@
+import json
 import numpy as np
 from collections import defaultdict
 
@@ -17,75 +18,75 @@ MS_COCO_CATEGORIES_DICT = {0: u'__background__',
                            9: u'boat',
                            10: u'traffic light',
                            11: u'fire hydrant',
-                           12: u'stop sign',
-                           13: u'parking meter',
-                           14: u'bench',
-                           15: u'bird',
-                           16: u'cat',
-                           17: u'dog',
-                           18: u'horse',
-                           19: u'sheep',
-                           20: u'cow',
-                           21: u'elephant',
-                           22: u'bear',
-                           23: u'zebra',
-                           24: u'giraffe',
-                           25: u'backpack',
-                           26: u'umbrella',
-                           27: u'handbag',
-                           28: u'tie',
-                           29: u'suitcase',
-                           30: u'frisbee',
-                           31: u'skis',
-                           32: u'snowboard',
-                           33: u'sports ball',
-                           34: u'kite',
-                           35: u'baseball bat',
-                           36: u'baseball glove',
-                           37: u'skateboard',
-                           38: u'surfboard',
-                           39: u'tennis racket',
-                           40: u'bottle',
-                           41: u'wine glass',
-                           42: u'cup',
-                           43: u'fork',
-                           44: u'knife',
-                           45: u'spoon',
-                           46: u'bowl',
-                           47: u'banana',
-                           48: u'apple',
-                           49: u'sandwich',
-                           50: u'orange',
-                           51: u'broccoli',
-                           52: u'carrot',
-                           53: u'hot dog',
-                           54: u'pizza',
-                           55: u'donut',
-                           56: u'cake',
-                           57: u'chair',
-                           58: u'couch',
-                           59: u'potted plant',
-                           60: u'bed',
-                           61: u'dining table',
-                           62: u'toilet',
-                           63: u'tv',
-                           64: u'laptop',
-                           65: u'mouse',
-                           66: u'remote',
-                           67: u'keyboard',
-                           68: u'cell phone',
-                           69: u'microwave',
-                           70: u'oven',
-                           71: u'toaster',
-                           72: u'sink',
-                           73: u'refrigerator',
-                           74: u'book',
-                           75: u'clock',
-                           76: u'vase',
-                           77: u'scissors',
-                           78: u'teddy bear',
-                           79: u'hair drier',
-                           80: u'toothbrush'}
+                           13: u'stop sign',
+                           14: u'parking meter',
+                           15: u'bench',
+                           16: u'bird',
+                           17: u'cat',
+                           18: u'dog',
+                           19: u'horse',
+                           20: u'sheep',
+                           21: u'cow',
+                           22: u'elephant',
+                           23: u'bear',
+                           24: u'zebra',
+                           25: u'giraffe',
+                           27: u'backpack',
+                           28: u'umbrella',
+                           31: u'handbag',
+                           32: u'tie',
+                           33: u'suitcase',
+                           34: u'frisbee',
+                           35: u'skis',
+                           36: u'snowboard',
+                           37: u'sports ball',
+                           38: u'kite',
+                           39: u'baseball bat',
+                           40: u'baseball glove',
+                           41: u'skateboard',
+                           42: u'surfboard',
+                           43: u'tennis racket',
+                           44: u'bottle',
+                           46: u'wine glass',
+                           47: u'cup',
+                           48: u'fork',
+                           49: u'knife',
+                           50: u'spoon',
+                           51: u'bowl',
+                           52: u'banana',
+                           53: u'apple',
+                           54: u'sandwich',
+                           55: u'orange',
+                           56: u'broccoli',
+                           57: u'carrot',
+                           58: u'hot dog',
+                           59: u'pizza',
+                           60: u'donut',
+                           61: u'cake',
+                           62: u'chair',
+                           63: u'couch',
+                           64: u'potted plant',
+                           65: u'bed',
+                           67: u'dining table',
+                           70: u'toilet',
+                           72: u'tv',
+                           73: u'laptop',
+                           74: u'mouse',
+                           75: u'remote',
+                           76: u'keyboard',
+                           77: u'cell phone',
+                           78: u'microwave',
+                           79: u'oven',
+                           80: u'toaster',
+                           81: u'sink',
+                           82: u'refrigerator',
+                           84: u'book',
+                           85: u'clock',
+                           86: u'vase',
+                           87: u'scissors',
+                           88: u'teddy bear',
+                           89: u'hair drier',
+                           90: u'toothbrush'}
 
 
 COCO_INSTANCE_CATEGORY_NAMES = [
@@ -303,3 +304,54 @@ def non_max_suppression_slow(boxes, threshold=0.5):
         idxs = np.delete(idxs, suppress)
     # return only the bounding boxes that were picked
     return boxes[pick]
+
+
+def bring_categories_to_COCO_values_for_instances_default(input_file_path, output_file_path):
+    with open(input_file_path, "r") as f:
+        annotations_data = json.load(f)
+
+    # create map = old_id: new_id for each category by label
+    cat_map = {}
+
+    categories = [x['name'] for x in annotations_data['categories']]
+    for each_category in categories:
+        res = 0
+        for k, v in MS_COCO_CATEGORIES_DICT.items():
+            if v == each_category:
+                res = k
+        cat_map[next(x for x in annotations_data['categories'] if x['name'] == each_category)['id']] = res
+
+    for i in range(len(annotations_data['categories'])):
+        old_id = annotations_data['categories'][i]['id']
+        annotations_data['categories'][i]['id'] = cat_map[old_id]
+
+    for i in range(len(annotations_data['annotations'])):
+        old_id = annotations_data['annotations'][i]['category_id']
+        annotations_data['annotations'][i]['category_id'] = cat_map[old_id]
+
+    with open(output_file_path, "w") as f:
+        json.dump(annotations_data, f)
+    print('Done.')
+
+
+def bring_categories_to_COCO_values_for_labels_default(input_file_path, output_file_path):
+    with open(input_file_path, "r") as f:
+        labels_data = json.load(f)
+
+    cat_map = {}
+    categories = [x['name'] for x in labels_data['categories']]
+
+    for each_category in categories:
+        res = 0
+        for k, v in MS_COCO_CATEGORIES_DICT.items():
+            if v == each_category:
+                res = k
+        cat_map[next(x for x in labels_data['categories'] if x['name'] == each_category)['id']] = res
+
+    for i in range(len(labels_data['categories'])):
+        old_id = labels_data['categories'][i]['id']
+        labels_data['categories'][i]['id'] = cat_map[old_id]
+
+    with open(output_file_path, "w") as f:
+        json.dump(labels_data, f)
+    print('Done.')
