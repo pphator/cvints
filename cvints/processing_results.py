@@ -5,6 +5,14 @@ class ProcessingResults:
     def __init__(self):
         self.results = []
 
+    def get_results_by_image_id(self, image_id):
+        item = next(item for item in self.results if item['image_id'] == image_id)
+        return item['detections']
+
+    def get_results_by_filename(self, image_filename):
+        item = next(item for item in self.results if item['image_filename'] == image_filename)
+        return item['detections']
+
 
 class ObjectDetectionResults(ProcessingResults):
     def __init__(self):
@@ -40,6 +48,7 @@ class ObjectDetectionResults(ProcessingResults):
                 for each_image_results, image_info in zip(results, images_info):
 
                     img_results = {'image_id': image_info['id'],
+                                   'image_filename': image_info['filename'],
                                    'image_size': image_info['size'],
                                    'detections': defaultdict(list)}
 
@@ -72,6 +81,4 @@ class ObjectDetectionResults(ProcessingResults):
     def set_results(self, results):
         self.results = results
 
-    def get_results_by_image(self, image_id):
-        item = next(item for item in self.results if item['image_id'] == image_id)
-        return item['detections']
+
