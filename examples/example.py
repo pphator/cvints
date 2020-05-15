@@ -1,4 +1,4 @@
-from cvints import ObjectDetectionDataset
+from cvints import ObjectDetectionDataset, DesktopCODataset
 from cvints import ObjectDetectionModel
 from cvints.processing_results import ObjectDetectionResults
 from cvints import Experiment
@@ -17,12 +17,11 @@ if __name__ == '__main__':
     path_to_processing_results = 'rus\\fasterrcnn_resnet50_desktopco.txt'
     path_to_processed_files_filenames = 'rus\\desktopco_processed_files_filenames.txt'
 
-    dataset = ObjectDetectionDataset(path_to_data=path_to_images,
-                                     path_to_annotations_file=path_to_annotation_file)
+    dataset = DesktopCODataset()
 
-    sample_ds = ObjectDetectionDataset.get_subset(dataset, size=1)
+    # sample_ds = ObjectDetectionDataset.get_subset(dataset, size=1)
 
-    dataset.show_images(with_bboxes=True)
+    # dataset.show_images(with_bboxes=True)
 
     with open(path_to_processed_files_filenames, 'rb') as in_file:
         processed_images_filenames = pickle.load(in_file)
@@ -46,10 +45,15 @@ if __name__ == '__main__':
 
     experiment = Experiment(task, model, dataset, processing_results)
 
-    experiment.filer_results_by_scores(scores_threshold=0.5)
+    experiment.metrics = ['Jaccard index']
+    metrics_result = experiment.metrics.calculate()
 
-    experiment.show_images()
+    pprinter.pprint(metrics_result)
+
+    # experiment.filer_results_by_scores(scores_threshold=0.5)
     #
-    experiment.apply_nms(nms_threshold=0.01)
+    # experiment.show_images()
     #
-    experiment.show_images()
+    # experiment.apply_nms(nms_threshold=0.01)
+    #
+    # experiment.show_images()
