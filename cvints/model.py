@@ -109,6 +109,7 @@ class ObjectDetectionModel(BaseModel):
         results = []
         for each_result in processing_results.results:
             image_id = each_result['image_id']
+            image_filename = each_result['image_filename']
             width, height = each_result['image_size']
             width_coef = width / self.config['input_size'][0]
             heigh_coef = height / self.config['input_size'][1]
@@ -125,6 +126,7 @@ class ObjectDetectionModel(BaseModel):
                     post_proc_detections.append((post_proc_bbox, score))
                 post_proc_results[each_label] = post_proc_detections
             results.append({'image_id': image_id,
+                            'image_filename': image_filename,
                             'image_size': (width, height),
                             'detections': post_proc_results})
 
