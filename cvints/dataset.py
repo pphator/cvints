@@ -235,8 +235,8 @@ class DesktopCODataset(ObjectDetectionDataset):
 
     """
     def __init__(self):
-        super(DesktopCODataset, self).__init__(path_to_images='..\\Datasets\\detection\\desktopco\\images\\',
-                                               path_to_annotations_file='..\\Datasets\\detection\\desktopco\\annotations\\instances_default.json',
+        super(DesktopCODataset, self).__init__(path_to_images='..\\datasets\\detection\\desktopco\\images\\',
+                                               path_to_annotations_file='..\\datasets\\detection\\desktopco\\annotations\\instances_default.json',
                                                is_sampled=False)
 
 
