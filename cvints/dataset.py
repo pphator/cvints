@@ -2,48 +2,49 @@
 # -*- coding: utf-8 -*-
 
 import json
-import numpy as np
+from collections import defaultdict
 from random import sample
+import numpy as np
 from matplotlib import pyplot as plt
 import seaborn as sns
-from os import listdir
 from tqdm import tqdm
 from PIL import Image
+
 from cvints import visialization as cvints_vis
-from collections import defaultdict
+
 
 GREEN = (0, 255, 0)
 
 
 class Dataset:
-    """
-        Base wrapper of data for CV tasks
+    """Base wrapper of ground truth data for CV tasks
 
-        Attributes
-        ----------
-        path_to_data : str
-            Absolute path to the folder with images and masks
-        path_to_annotations_file : str
-            Absolute path to the annotations file (file should be in COCO format)
-        is_sampled: bool
-            If the value of the parameter is True, to the Dataset will be loaded only
-            `samples_number` images from the `path_to_data` with associated annotations from `path_to_annotations_file`
-            If the value of the parameter is False, all images from `path_to_data` will be loaded to the Dataset
-        samples_number: int
-            The number of images to load to the Dataset if `is_sampled` is True
+    Attributes
+    ----------
+    path_to_images : str
+        Absolute path to the folder with images
+    path_to_annotations_file : str
+        Absolute path to the annotations file (file should be in COCO format)
+    is_sampled: bool
+        If the value of the parameter is True, to the Dataset will be loaded only
+        `samples_number` random images from the `path_to_data` with associated annotations
+        from `path_to_annotations_file`
+        If the value of the parameter is False, all images from `path_to_data`
+        will be loaded to the Dataset
+    samples_number: int
+        The number of images to load to the Dataset if `is_sampled` is True
+    filenames : list of str
     """
 
     def __init__(self, path_to_data, path_to_annotations_file, is_sampled=False, sample_size=5):
-        self.path_to_data = path_to_data
-        # if self.path_to_data is not None:
-        #     self.filenames = listdir(self.path_to_data)
+        self.path_to_images = path_to_data
         self.path_to_annotations_file = path_to_annotations_file
         self.is_sampled = is_sampled
         self.path_to_evaluations_results_file = None
 
         if self.path_to_annotations_file:
-            with open(self.path_to_annotations_file, "r") as f:
-                annotations_data = json.load(f)
+            with open(self.path_to_annotations_file, "r") as input_file:
+                annotations_data = json.load(input_file)
 
         if is_sampled:
             sampled_images_info = sample(annotations_data["images"], sample_size)
@@ -74,15 +75,14 @@ class Dataset:
     @classmethod
     def get_subset(cls, dataset, size=5):
         return cls(
-            path_to_data=dataset.path_to_data,
+            path_to_data=dataset.path_to_images,
             path_to_annotations_file=dataset.path_to_annotations_file,
             is_sampled=True,
             sample_size=size,
         )
 
     def get_images_info_by_filenames(self, filenames):
-        """
-        Method to get id and size of all images by their filenames
+        """Method to get id, filename and size of all images by their filenames
 
         Parameters
         ----------
@@ -90,12 +90,18 @@ class Dataset:
 
         Returns
         -------
+        images_info : list of dicts
+            each dict has structure {'id': (int),
+                                     'filename' : (str),
+                                     'size' : (tuple)}
+
         """
         images_info = []
         for filename_ind in tqdm(range(len(filenames))):
             each_filename = filenames[filename_ind]
-            item = next(x for x in self.annotations['images_info'] if x['file_name'] == each_filename)
-            image_path = self.path_to_data + each_filename
+            item = next(x for x in self.annotations['images_info']
+                        if x['file_name'] == each_filename)
+            image_path = self.path_to_images + each_filename
             image = Image.open(image_path)
             images_info.append({'id': item['id'],
                                 'filename': each_filename,
@@ -104,12 +110,21 @@ class Dataset:
         return images_info
 
     def get_filename_by_id(self, image_id):
-        item = next(x for x in self.annotations['images_info'] if x['id'] == image_id)['file_name']
-        return item
+        """Method to return image filename by it's id from annotation
+
+        Parameters
+        ----------
+        image_id : int
+
+        Returns
+        -------
+        filename : str
+        """
+        filename = next(x for x in self.annotations['images_info'] if x['id'] == image_id)['file_name']
+        return filename
 
     def get_ids_by_filenames(self, filenames):
-        """
-        Returns the list of images ids in filenames array order
+        """Returns the list of images ids in filenames array order
 
         Parameters
         ----------
@@ -122,7 +137,8 @@ class Dataset:
         images_ids = []
 
         for each_filename in filenames:
-            item = next(x for x in self.annotations['images_info'] if x['file_name'] == each_filename)
+            item = next(x for x in self.annotations['images_info']
+                        if x['file_name'] == each_filename)
             images_ids.append(item['id'])
 
         return images_ids
@@ -132,30 +148,44 @@ class Dataset:
 
 
 class ObjectDetectionDataset(Dataset):
-    """
-        Wrapper of data for object detection tasks
+    """Wrapper of data for object detection tasks
 
-        Attributes
-        ----------
-        path_to_data : str
-            Absolute path to the folder with images and masks
-        path_to_annotations_file : str
-            Absolute path to the annotations file (file should be in COCO format)
-        is_sampled: bool
-            If the value of the parameter is True, to the Dataset will be loaded only
-            `samples_number` images from the `path_to_data` with associated annotations from `path_to_annotations_file`
-            If the value of the parameter is False, all images from `path_to_data` will be loaded to the Dataset
-        samples_number: int
-            The number of images to load to the Dataset if `is_sampled` is True
+    Attributes
+    ----------
+    path_to_images : str
+        Absolute path to the folder with images
+    path_to_annotations_file : str
+        Absolute path to the annotations file (file should be in COCO format)
+    is_sampled: bool
+        If the value of the parameter is True, to the Dataset will be loaded only
+        `samples_number` random images from the `path_to_data` with associated annotations
+        from `path_to_annotations_file`
+        If the value of the parameter is False, all images from `path_to_data`
+        will be loaded to the Dataset
+    samples_number: int
+        The number of images to load to the Dataset if `is_sampled` is True
+    filenames : list of str
     """
 
-    def __init__(self, path_to_data, path_to_annotations_file, is_sampled=False, sample_size=5):
-        super(ObjectDetectionDataset, self).__init__(path_to_data, path_to_annotations_file, is_sampled, sample_size)
+    def __init__(self, path_to_images, path_to_annotations_file, is_sampled=False, sample_size=5):
+        super(ObjectDetectionDataset, self).__init__(path_to_images, path_to_annotations_file, is_sampled, sample_size)
 
     def get_images_ids(self):
-        return [x["id"] for x in self.annotations["images_info"]]
+        return [image_info["id"] for image_info in self.annotations["images_info"]]
 
     def get_image_annotations_by_filename(self, filename):
+        """Method to get annotations for the image by it's filename
+
+        Parameters
+        ----------
+        filename : string
+
+        Returns
+        -------
+        annotations : defaultdict(list)
+            Keys of this dict are object categories ids,
+            Value for each key is list of bboxes
+        """
         image_id = self.get_ids_by_filenames([filename])[0]
         annotations = defaultdict(list)
         for each in self.annotations['annotations_info']:
@@ -164,40 +194,70 @@ class ObjectDetectionDataset(Dataset):
         return annotations
 
     def show_images(self, with_bboxes=False, annotations=None):
+        """Method to show an image.
+        It is possible to show image with annotations
+
+        Parameters
+        ----------
+        with_bboxes : bool
+        annotations : dict
+            keys of dict are objects categories
+            each value is a list of bboxes
+        """
         for each_image in self.filenames:
-            img = Image.open(self.path_to_data + '\\' + each_image)
+            img = Image.open(self.path_to_images + '\\' + each_image)
             if with_bboxes:
                 if annotations is None:
                     annotations = self.get_image_annotations_by_filename(each_image)
                 img = cvints_vis.put_bboxes_to_image(img, annotations)
-            img.show()
+            cvints_vis.show_image(img)
 
 
 class DesktopCODataset(ObjectDetectionDataset):
+    """
+    Dataset with images of desktop with common objects
+
+    Attributes
+    ----------
+    path_to_images : str
+        Absolute path to the folder with images
+    path_to_annotations_file : str
+        Absolute path to the annotations file (file should be in COCO format)
+    is_sampled: bool
+        If the value of the parameter is True, to the Dataset will be loaded only
+        `samples_number` random images from the `path_to_data` with associated annotations
+        from `path_to_annotations_file`
+        If the value of the parameter is False, all images from `path_to_data`
+        will be loaded to the Dataset
+    samples_number: int
+        The number of images to load to the Dataset if `is_sampled` is True
+    filenames : list of str
+
+    """
     def __init__(self):
-        super(DesktopCODataset, self).__init__(path_to_data='..\\Datasets\\detection\\desktopco\\images\\',
-                                               path_to_annotations_file = '..\\Datasets\\detection\\desktopco\\annotations\\instances_default.json',
+        super(DesktopCODataset, self).__init__(path_to_images='..\\Datasets\\detection\\desktopco\\images\\',
+                                               path_to_annotations_file='..\\Datasets\\detection\\desktopco\\annotations\\instances_default.json',
                                                is_sampled=False)
 
 
-
-
 class HumanDetectionDataset(ObjectDetectionDataset):
-    """
-        Wrapper of data for the human detection task
+    """Wrapper of data for the human detection task
 
-        Attributes
-        ----------
-        path_to_data : str
-            Absolute path to the folder with images and masks
-        path_to_annotations_file : str
-            Absolute path to the annotations file (file should be in COCO format)
-        is_sampled: bool
-            If the value of the parameter is True, to the Dataset will be loaded only
-            `samples_number` images from the `path_to_data` with associated annotations from `path_to_annotations_file`
-            If the value of the parameter is False, all images from `path_to_data` will be loaded to the Dataset
-        samples_number: int
-            The number of images to load to the Dataset if `is_sampled` is True
+    Attributes
+    ----------
+    path_to_images : str
+        Absolute path to the folder with images
+    path_to_annotations_file : str
+        Absolute path to the annotations file (file should be in COCO format)
+    is_sampled: bool
+        If the value of the parameter is True, to the Dataset will be loaded only
+        `samples_number` random images from the `path_to_data` with associated annotations
+        from `path_to_annotations_file`
+        If the value of the parameter is False, all images from `path_to_data`
+        will be loaded to the Dataset
+    samples_number: int
+        The number of images to load to the Dataset if `is_sampled` is True
+    filenames : list of str
     """
 
     def __init__(self, path_to_data, path_to_annotations_file, is_sampled=False, sample_size=5):
@@ -206,15 +266,12 @@ class HumanDetectionDataset(ObjectDetectionDataset):
     def describe_gt(self, with_plots=False):
         """ Describe data in dataset
 
-            Parameters
-            ----------
-            with_plots : bool
-                if True, the method will print some statistics as text and draw some plots
-                if False, the method will only print some statistics of the data as text
+        Parameters
+        ----------
+        with_plots : bool
+            if True, the method will print some statistics as text and draw some plots
+            if False, the method will only print some statistics of the data as text
 
-            Returns
-            ----------
-            None
         """
         images_number = len(self.annotations["images_info"])
         total_person_number = len(self.annotations["annotations_info"])
@@ -245,9 +302,3 @@ class HumanDetectionDataset(ObjectDetectionDataset):
             plt.title("Persons per image distribution")
             sns.distplot(persons_per_image_list, kde=False)
             plt.show()
-
-    # ToDo: complete method to check person detection model evaluation file format. Should be list of dicts (but may
-    #  be discussed)
-    def check_model_evaluation_results_format(self):
-
-        return None
