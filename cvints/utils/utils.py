@@ -141,55 +141,6 @@ def low_scores_filter(processing_results, threshold=DEFAULT_SCORES_THRESHOLD):
     processing_results.set_results(new_results)
     return processing_results
 
-
-def get_iou(bbox1, bbox2):
-    """
-
-
-    Parameters
-    ----------
-    bbox1 : list
-    :param bbox2:
-
-    Notes
-    -----
-    bbox[0] = x1
-    bbox[1] = y1
-    bbox[2] = x2
-    bbox[3] = y2
-    """
-
-    bbox1_x1 = bbox1[0]
-    bbox1_y1 = bbox1[1]
-    bbox1_x2 = bbox1[0] + bbox1[2]
-    bbox1_y2 = bbox1[1] + bbox1[3]
-
-    bbox2_x1 = bbox2[0]
-    bbox2_y1 = bbox2[1]
-    bbox2_x2 = bbox2[0] + bbox2[2]
-    bbox2_y2 = bbox2[1] + bbox2[3]
-
-    ixmin = max(bbox1_x1, bbox2_x1)
-    ixmax = min(bbox1_x2, bbox2_x2)
-    iymin = max(bbox1_y1, bbox2_y1)
-    iymax = min(bbox1_y2, bbox2_y2)
-
-    iw = np.maximum(ixmax - ixmin + 1.0, 0.0)
-    ih = np.maximum(iymax - iymin + 1.0, 0.0)
-
-    inters = iw * ih
-
-    uni = (
-            (bbox1_x2 - bbox1_x1 + 1.0) * (bbox1_y2 - bbox1_y1 + 1.0)
-            + (bbox2_x2 - bbox2_x1 + 1.0) * (bbox2_y2 - bbox2_y1 + 1.0)
-            - inters
-    )
-
-    iou = inters / uni
-
-    return iou
-
-
 def non_max_suppression(bboxes, scores, iou_threshold=0.5):
     """
     This function could be applied to the bboxes and scores of common label
