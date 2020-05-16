@@ -16,6 +16,7 @@ setuptools.setup(
      url="https://github.com/VasilyBoychuk/cvints",
      packages=setuptools.find_packages(),
      package_data={'opensets': ['*']},
+     data_files=[('opensets', ['*'])],
      include_package_data=True,
      classifiers=[
          "Programming Language :: Python :: 3",
