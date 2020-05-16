@@ -6,12 +6,12 @@ with open('README.md', 'r') as f:
     long_description = f.read()
 
 data_files = []
-directories = glob('opensets\\detection\\desktopco\\images')
+directories = glob('opensets\\detection\\desktopco\\images\\')
 for directory in directories:
     files = glob(directory+'*')
     data_files.append((directory, files))
 
-directories = glob('opensets\\detection\\desktopco\\annotations')
+directories = glob('opensets\\detection\\desktopco\\annotations\\')
 for directory in directories:
     files = glob(directory+'*')
     data_files.append((directory, files))
