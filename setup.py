@@ -12,9 +12,10 @@ setuptools.setup(
      author_email="vasily.m.boychuk@gmail.com",
      description="A lib to solve cv tasks",
      long_description=long_description,
-  long_description_content_type="text/markdown",
+     long_description_content_type="text/markdown",
      url="https://github.com/VasilyBoychuk/cvints",
      packages=setuptools.find_packages(exclude=['examples']),
+     include_package_data=True,
      classifiers=[
          "Programming Language :: Python :: 3",
          "Operating System :: OS Independent",
