@@ -77,7 +77,7 @@ class Experiment:
             file_name = each_image_info['file_name']
             image_id = each_image_info['id']
             this_image_prediction = self.results.get_results_by_image_id(image_id)
-            image_path = self.dataset.path_to_data + file_name
+            image_path = self.dataset.path_to_images + file_name
             image = cvints_vis.open_image(image_path)
             image = cvints_vis.put_bboxes_to_image(image, this_image_prediction)
             cvints_vis.show_image(image)

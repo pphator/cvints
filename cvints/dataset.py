@@ -10,6 +10,7 @@ from matplotlib import pyplot as plt
 import seaborn as sns
 from tqdm import tqdm
 from PIL import Image
+from pathlib import Path
 
 from cvints import visialization as cvints_vis
 
@@ -236,10 +237,9 @@ class DesktopCODataset(ObjectDetectionDataset):
 
     """
     def __init__(self):
-        current_file_path = os.path.dirname(os.path.abspath(__file__))
-        print(current_file_path)
-        path_to_images = current_file_path + '\\datasets\\detection\\desktopco\\images\\'
-        path_to_annotation_file = current_file_path + '\\datasets\\detection\\desktopco\\annotations\\instances_default.json'
+        core_path = str(Path(__file__).parents[1])
+        path_to_images = core_path + '\\cvints\\opensets\\detection\\desktopco\\images\\'
+        path_to_annotation_file = core_path + '\\cvints\\opensets\\detection\\desktopco\\annotations\\instances_default.json'
         super(DesktopCODataset, self).__init__(path_to_images=path_to_images,
                                                path_to_annotations_file=path_to_annotation_file,
                                                is_sampled=False)
