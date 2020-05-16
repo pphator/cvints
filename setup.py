@@ -28,7 +28,7 @@ setuptools.setup(
      long_description_content_type="text/markdown",
      url="https://github.com/VasilyBoychuk/cvints",
      packages=setuptools.find_packages(),
-     package_data={'opensets': ['*']},
+     package_data={'': data_files},
      data_files=data_files,
      include_package_data=True,
      classifiers=[
