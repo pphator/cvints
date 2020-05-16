@@ -238,8 +238,8 @@ class DesktopCODataset(ObjectDetectionDataset):
     """
     def __init__(self):
         core_path = str(Path(__file__).parents[1])
-        path_to_images = core_path + '\\cvints\\opensets\\detection\\desktopco\\images\\'
-        path_to_annotation_file = core_path + '\\cvints\\opensets\\detection\\desktopco\\annotations\\instances_default.json'
+        path_to_images = core_path + '\\opensets\\detection\\desktopco\\images\\'
+        path_to_annotation_file = core_path + '\\opensets\\detection\\desktopco\\annotations\\instances_default.json'
         super(DesktopCODataset, self).__init__(path_to_images=path_to_images,
                                                path_to_annotations_file=path_to_annotation_file,
                                                is_sampled=False)
