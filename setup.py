@@ -16,8 +16,6 @@ for directory in directories:
     files = glob(directory+'*')
     data_files.append((directory, files))
 
-
-
 setuptools.setup(
      name='cvints',
      version='0.1',
@@ -28,8 +26,8 @@ setuptools.setup(
      long_description_content_type="text/markdown",
      url="https://github.com/VasilyBoychuk/cvints",
      packages=setuptools.find_packages(),
-     package_data={'': data_files},
-     data_files=data_files,
+     package_data={'': ['license.txt']},
+     # data_files=data_files,
      include_package_data=True,
      classifiers=[
          "Programming Language :: Python :: 3",
