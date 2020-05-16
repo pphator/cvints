@@ -6,10 +6,3 @@ recursive-include cvints *
 recursive-include opensets *
 recursive-include examples *
 recursive-include docs *
-
-global-exclude *.pyc *.pyo *.pyd
-global-exclude *.git
-global-exclude *.so
-global-exclude *~
-global-exclude \#*
-global-exclude .DS_Store
