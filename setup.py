@@ -5,6 +5,11 @@ from glob import glob
 with open('README.md', 'r') as f:
     long_description = f.read()
 
+data_files = []
+directories = glob('opensets\\detection\\desktopco\\')
+for directory in directories:
+    files = glob(directory+'*')
+    data_files.append((directory, files))
 
 setuptools.setup(
      name='cvints',
@@ -17,7 +22,7 @@ setuptools.setup(
      url="https://github.com/VasilyBoychuk/cvints",
      packages=setuptools.find_packages(),
      package_data={'opensets': ['*']},
-     data_files=[('', glob('opensets/**/*', recursive=True))],
+     data_files=data_files,
      include_package_data=True,
      classifiers=[
          "Programming Language :: Python :: 3",
