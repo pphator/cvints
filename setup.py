@@ -1,9 +1,20 @@
 import setuptools
+from glob import glob
 
 
 with open('README.md', 'r') as f:
     long_description = f.read()
 
+data_files = []
+directories = glob('opensets\\detection\\desktopco\\images\\')
+for directory in directories:
+    files = glob(directory+'*')
+    data_files += files
+
+directories = glob('opensets\\detection\\desktopco\\annotations\\')
+for directory in directories:
+    files = glob(directory+'*')
+    data_files += files
 
 setuptools.setup(
      name='cvints',
@@ -12,9 +23,12 @@ setuptools.setup(
      author_email="vasily.m.boychuk@gmail.com",
      description="A lib to solve cv tasks",
      long_description=long_description,
-  long_description_content_type="text/markdown",
+     long_description_content_type="text/markdown",
      url="https://github.com/VasilyBoychuk/cvints",
-     packages=setuptools.find_packages(exclude=['examples']),
+     packages=setuptools.find_packages(),
+     package_data={'cvints.opensets': data_files},
+     # data_files=data_files,
+     include_package_data=True,
      classifiers=[
          "Programming Language :: Python :: 3",
          "Operating System :: OS Independent",

@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import json
+import os
 from collections import defaultdict
 from random import sample
 import numpy as np
@@ -9,6 +10,7 @@ from matplotlib import pyplot as plt
 import seaborn as sns
 from tqdm import tqdm
 from PIL import Image
+from pathlib import Path
 
 from cvints import visialization as cvints_vis
 
@@ -36,8 +38,8 @@ class Dataset:
     filenames : list of str
     """
 
-    def __init__(self, path_to_data, path_to_annotations_file, is_sampled=False, sample_size=5):
-        self.path_to_images = path_to_data
+    def __init__(self, path_to_images, path_to_annotations_file, is_sampled=False, sample_size=5):
+        self.path_to_images = path_to_images
         self.path_to_annotations_file = path_to_annotations_file
         self.is_sampled = is_sampled
         self.path_to_evaluations_results_file = None
@@ -75,7 +77,7 @@ class Dataset:
     @classmethod
     def get_subset(cls, dataset, size=5):
         return cls(
-            path_to_data=dataset.path_to_images,
+            path_to_images=dataset.path_to_images,
             path_to_annotations_file=dataset.path_to_annotations_file,
             is_sampled=True,
             sample_size=size,
@@ -235,8 +237,11 @@ class DesktopCODataset(ObjectDetectionDataset):
 
     """
     def __init__(self):
-        super(DesktopCODataset, self).__init__(path_to_images='..\\datasets\\detection\\desktopco\\images\\',
-                                               path_to_annotations_file='..\\datasets\\detection\\desktopco\\annotations\\instances_default.json',
+        core_path = str(Path(__file__).parents[1])
+        path_to_images = core_path + '\\opensets\\detection\\desktopco\\images\\'
+        path_to_annotation_file = core_path + '\\opensets\\detection\\desktopco\\annotations\\instances_default.json'
+        super(DesktopCODataset, self).__init__(path_to_images=path_to_images,
+                                               path_to_annotations_file=path_to_annotation_file,
                                                is_sampled=False)
 
 
@@ -260,8 +265,8 @@ class HumanDetectionDataset(ObjectDetectionDataset):
     filenames : list of str
     """
 
-    def __init__(self, path_to_data, path_to_annotations_file, is_sampled=False, sample_size=5):
-        super(HumanDetectionDataset, self).__init__(path_to_data, path_to_annotations_file, is_sampled, sample_size)
+    def __init__(self, path_to_images, path_to_annotations_file, is_sampled=False, sample_size=5):
+        super(HumanDetectionDataset, self).__init__(path_to_images, path_to_annotations_file, is_sampled, sample_size)
 
     def describe_gt(self, with_plots=False):
         """ Describe data in dataset

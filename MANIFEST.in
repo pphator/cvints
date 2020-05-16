@@ -1,0 +1,8 @@
+include MANIFEST.in
+include README.md
+include setup.py
+
+recursive-include cvints *
+recursive-include opensets *
+recursive-include examples *
+recursive-include docs *
