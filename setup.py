@@ -1,4 +1,5 @@
 import setuptools
+from glob import glob
 
 
 with open('README.md', 'r') as f:
@@ -16,7 +17,7 @@ setuptools.setup(
      url="https://github.com/VasilyBoychuk/cvints",
      packages=setuptools.find_packages(),
      package_data={'opensets': ['*']},
-     data_files=[('opensets', ['*'])],
+     data_files=[('opensets', glob('detections/**/*', recursive=True))],
      include_package_data=True,
      classifiers=[
          "Programming Language :: Python :: 3",
