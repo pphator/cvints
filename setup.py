@@ -26,7 +26,7 @@ setuptools.setup(
      long_description_content_type="text/markdown",
      url="https://github.com/VasilyBoychuk/cvints",
      packages=setuptools.find_packages(),
-     package_data={'': ['license.txt']},
+     package_data={'': ['requirements.txt']},
      # data_files=data_files,
      include_package_data=True,
      classifiers=[
