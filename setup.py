@@ -6,12 +6,12 @@ with open('README.md', 'r') as f:
     long_description = f.read()
 
 data_files = []
-directories = glob('opensets\\detection\\desktopco\\images\\')
+directories = glob('cvints\\opensets\\detection\\desktopco\\images\\')
 for directory in directories:
     files = glob(directory+'*')
     data_files += files
 
-directories = glob('opensets\\detection\\desktopco\\annotations\\')
+directories = glob('cvints\\opensets\\detection\\desktopco\\annotations\\')
 for directory in directories:
     files = glob(directory+'*')
     data_files += files
@@ -26,7 +26,7 @@ setuptools.setup(
      long_description_content_type="text/markdown",
      url="https://github.com/VasilyBoychuk/cvints",
      packages=setuptools.find_packages(),
-     package_data={'cvints.opensets': data_files},
+     package_data={'cvints': data_files},
      # data_files=data_files,
      include_package_data=True,
      classifiers=[
