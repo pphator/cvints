@@ -21,6 +21,7 @@ The library has several main entities:
 
 - [Model](https://github.com/VasilyBoychuk/cvints/blob/master/cvints/model.py)
 - [Dataset](https://github.com/VasilyBoychuk/cvints/blob/master/cvints/dataset.py)
+- [Experiment](https://github.com/VasilyBoychuk/cvints/blob/master/cvints/experiment.py)
 
 ### Dataset
 
@@ -30,6 +31,11 @@ To do this, specify the paths to images and annotation files.
 ### Model 
 
 You can define model using training/validation data, test data and results on test data.
+
+### Experiment
+
+You can think of the entire process of evaluating the model's performance with data as an experiment 
+in which all actions with other entities take place
 
 
 ## Examples
