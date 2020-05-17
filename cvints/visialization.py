@@ -95,7 +95,12 @@ def show_image(image):
     image : PIL Image
 
     """
-    image.show()
+
+    # pil_im = Image.open('data/empire.jpg', 'r')
+    plt.axis('off')
+    plt.imshow(np.asarray(image))
+    plt.show()
+    # image.show()
 
 
 def open_image(path_to_image):
@@ -114,7 +119,7 @@ def open_image(path_to_image):
     return image
 
 
-def put_bboxes_to_image(image, annotations):
+def put_annotations_to_image(image, annotations):
     """
     Parameters
     ----------
@@ -136,9 +141,15 @@ def put_bboxes_to_image(image, annotations):
         category = categories[cat_index]
         each_category_annotations = annotations[category]
         for each_annotation in each_category_annotations:
-            draw.rectangle(((each_annotation[0][0], each_annotation[0][1]),
-                            (each_annotation[0][0] + each_annotation[0][2],
-                             each_annotation[0][1] + each_annotation[0][3])),
-                           outline=colors[cat_index], width=5)
+            if isinstance(each_annotation, tuple):
+                draw.rectangle(((each_annotation[0][0], each_annotation[0][1]),
+                                (each_annotation[0][0] + each_annotation[0][2],
+                                 each_annotation[0][1] + each_annotation[0][3])),
+                               outline=colors[cat_index], width=5)
+            elif isinstance(each_annotation, list):
+                draw.rectangle(((each_annotation[0], each_annotation[1]),
+                                (each_annotation[0] + each_annotation[2],
+                                 each_annotation[1] + each_annotation[3])),
+                               outline=colors[cat_index], width=5)
 
     return image
