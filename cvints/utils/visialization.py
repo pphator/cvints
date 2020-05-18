@@ -1,4 +1,4 @@
-from .utils.utils import MS_COCO_CATEGORIES_DICT
+from .utils import MS_COCO_CATEGORIES_DICT
 
 import numpy as np
 from collections import defaultdict

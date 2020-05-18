@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 from cvints.utils.utils import COCO_INSTANCE_CATEGORY_NAMES
 import cvints.utils.utils as cvints_utils
-import cvints.visialization as cvints_vis
+import cvints.utils.visialization as cvints_vis
 from cvints.metrics import Metrics
 
 
