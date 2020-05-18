@@ -79,7 +79,7 @@ class Experiment:
             this_image_prediction = self.results.get_results_by_image_id(image_id)
             image_path = self.dataset.path_to_images + file_name
             image = cvints_vis.open_image(image_path)
-            image = cvints_vis.put_bboxes_to_image(image, this_image_prediction)
+            image = cvints_vis.put_annotations_to_image(image, this_image_prediction)
             cvints_vis.show_image(image)
 
     def run(self):

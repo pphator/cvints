@@ -195,7 +195,7 @@ class ObjectDetectionDataset(Dataset):
                 annotations[str(each['category_id'])].append((each['bbox']))
         return annotations
 
-    def show_images(self, with_bboxes=False, annotations=None):
+    def show_images(self, with_bboxes=False):
         """Method to show an image.
         It is possible to show image with annotations
 
@@ -209,9 +209,8 @@ class ObjectDetectionDataset(Dataset):
         for each_image in self.filenames:
             img = Image.open(self.path_to_images + '\\' + each_image)
             if with_bboxes:
-                if annotations is None:
-                    annotations = self.get_image_annotations_by_filename(each_image)
-                img = cvints_vis.put_bboxes_to_image(img, annotations)
+                annotations = self.get_image_annotations_by_filename(each_image)
+                img = cvints_vis.put_annotations_to_image(img, annotations)
             cvints_vis.show_image(img)
 
 

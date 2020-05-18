@@ -16,6 +16,11 @@ for directory in directories:
     files = glob(directory+'*')
     data_files += files
 
+directories = glob('cvints\\utils\\fonts\\')
+for directory in directories:
+    files = glob(directory+'*')
+    data_files += files
+
 setuptools.setup(
      name='cvints',
      version='0.1',

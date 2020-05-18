@@ -1,9 +1,11 @@
+from .utils.utils import MS_COCO_CATEGORIES_DICT
+
 import numpy as np
 from collections import defaultdict
 from matplotlib import pyplot as plt
 import seaborn as sns
-from PIL import Image
-from PIL import ImageDraw
+from PIL import Image, ImageDraw, ImageFont
+from pathlib import Path
 
 
 COLORS = ['#00ff88', '#ff0000', '#07aca7', '#ff9800', '#ff023c', '#a2aca7', '#070aa7']
@@ -95,7 +97,12 @@ def show_image(image):
     image : PIL Image
 
     """
-    image.show()
+
+    # pil_im = Image.open('data/empire.jpg', 'r')
+    plt.axis('off')
+    plt.imshow(np.asarray(image))
+    plt.show()
+    # image.show()
 
 
 def open_image(path_to_image):
@@ -114,7 +121,7 @@ def open_image(path_to_image):
     return image
 
 
-def put_bboxes_to_image(image, annotations):
+def put_annotations_to_image(image, annotations):
     """
     Parameters
     ----------
@@ -132,13 +139,26 @@ def put_bboxes_to_image(image, annotations):
     colors = COLORS[:len(categories)]
 
     draw = ImageDraw.Draw(image)
+    core_path = str(Path(__file__).parents[1])
+    path_to_font = core_path + '\\cvints\\utils\\fonts\\arial.ttf'
+    # font = ImageFont.load(path_to_font)
+
+    font = ImageFont.truetype(path_to_font, size=80)
     for cat_index in range(len(categories)):
         category = categories[cat_index]
+        category_label = MS_COCO_CATEGORIES_DICT[int(category)]
         each_category_annotations = annotations[category]
         for each_annotation in each_category_annotations:
-            draw.rectangle(((each_annotation[0][0], each_annotation[0][1]),
-                            (each_annotation[0][0] + each_annotation[0][2],
-                             each_annotation[0][1] + each_annotation[0][3])),
-                           outline=colors[cat_index], width=5)
-
+            if isinstance(each_annotation, tuple):
+                draw.rectangle(((each_annotation[0][0], each_annotation[0][1]),
+                                (each_annotation[0][0] + each_annotation[0][2],
+                                 each_annotation[0][1] + each_annotation[0][3])),
+                               outline=colors[cat_index], width=5)
+                draw.text((each_annotation[0][0] + 5, each_annotation[0][1] + 5), category_label, font=font)
+            elif isinstance(each_annotation, list):
+                draw.rectangle(((each_annotation[0], each_annotation[1]),
+                                (each_annotation[0] + each_annotation[2],
+                                 each_annotation[1] + each_annotation[3])),
+                               outline=colors[cat_index], width=5)
+                draw.text((each_annotation[0] + 5, each_annotation[1] + 5), category_label, font=font)
     return image

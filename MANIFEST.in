@@ -3,6 +3,6 @@ include README.md
 include setup.py
 
 recursive-include cvints *
-recursive-include opensets *
+recursive-include cvints/utils *
 recursive-include examples *
 recursive-include docs *
