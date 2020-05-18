@@ -140,7 +140,7 @@ def put_annotations_to_image(image, annotations):
 
     draw = ImageDraw.Draw(image)
     core_path = str(Path(__file__).parents[1])
-    path_to_font = core_path + '\\cvints\\utils\\fonts\\arial.ttf'
+    path_to_font = core_path + '\\cvints\\utils\\fonts\\OpenSans-Regular.ttf'
     # font = ImageFont.load(path_to_font)
 
     font = ImageFont.truetype(path_to_font, size=80)
