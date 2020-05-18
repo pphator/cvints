@@ -12,14 +12,14 @@ def get_iou(bbox1, bbox2):
     Parameters
     ----------
     bbox1 : list
-    :param bbox2:
+    bbox2 : list
 
     Notes
     -----
     bbox[0] = x1
     bbox[1] = y1
-    bbox[2] = x2
-    bbox[3] = y2
+    bbox[2] = width
+    bbox[3] = height
     """
 
     bbox1_x1 = bbox1[0]
@@ -49,7 +49,6 @@ def get_iou(bbox1, bbox2):
     )
 
     iou = inters / uni
-
     return iou
 
 
@@ -133,7 +132,6 @@ class Metrics:
                                                 'Mean_jaccard_index': mean_jaccard_index}
 
                 # elif each_metric == 'Precision':
-
 
         else:
             raise CvintsException('No metrics to calculate')
