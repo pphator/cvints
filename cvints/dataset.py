@@ -2,18 +2,17 @@
 # -*- coding: utf-8 -*-
 
 import json
-import os
-from collections import defaultdict
+from collections import defaultdict, Counter
 from random import sample
+from pathlib import Path
 import numpy as np
 from matplotlib import pyplot as plt
 import seaborn as sns
 from tqdm import tqdm
 from PIL import Image
-from pathlib import Path
 
-from cvints import visialization as cvints_vis
-
+from .utils import visialization as cvints_vis
+from .utils.utils import MS_COCO_CATEGORIES_DICT
 
 GREEN = (0, 255, 0)
 
@@ -122,7 +121,8 @@ class Dataset:
         -------
         filename : str
         """
-        filename = next(x for x in self.annotations['images_info'] if x['id'] == image_id)['file_name']
+        filename = next(x for x in self.annotations['images_info']
+                        if x['id'] == image_id)['file_name']
         return filename
 
     def get_ids_by_filenames(self, filenames):
@@ -170,7 +170,10 @@ class ObjectDetectionDataset(Dataset):
     """
 
     def __init__(self, path_to_images, path_to_annotations_file, is_sampled=False, sample_size=5):
-        super(ObjectDetectionDataset, self).__init__(path_to_images, path_to_annotations_file, is_sampled, sample_size)
+        super(ObjectDetectionDataset, self).__init__(path_to_images,
+                                                     path_to_annotations_file,
+                                                     is_sampled,
+                                                     sample_size)
 
     def get_images_ids(self):
         return [image_info["id"] for image_info in self.annotations["images_info"]]
@@ -212,6 +215,21 @@ class ObjectDetectionDataset(Dataset):
                 annotations = self.get_image_annotations_by_filename(each_image)
                 img = cvints_vis.put_annotations_to_image(img, annotations)
             cvints_vis.show_image(img)
+
+    def describe(self):
+        """Method to print text description about dataset
+
+        """
+        images_number = len(self.filenames)
+        print('{0} images'.format(images_number))
+
+        object_categories = [MS_COCO_CATEGORIES_DICT[x['category_id']] for x in self.annotations['annotations_info']]
+        categories_counter = Counter(object_categories)
+        unique_categories = list(categories_counter.keys())
+        print('Categories:', ', '.join(unique_categories))
+        print('Counter:')
+        for each_cat in categories_counter.keys():
+            print('\t', each_cat, ': ', categories_counter[each_cat], sep='')
 
 
 class DesktopCODataset(ObjectDetectionDataset):
