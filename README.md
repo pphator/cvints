@@ -1,4 +1,4 @@
-[![Python](https://img.shields.io/badge/python-3.6-blue.svg)](https://python.org)
+[![Python](https://img.shields.io/badge/python-3.6-blue.svg)](https://python.org) [![Python](https://img.shields.io/badge/python-3.6-blue.svg)](https://python.org)
 
 
 # cvints
@@ -19,8 +19,8 @@ pip3 install git+https://github.com/VasilyBoychuk/cvints.git
 
 The library has several main entities:
 
-- [Model](https://github.com/VasilyBoychuk/cvints/blob/master/cvints/model.py)
 - [Dataset](https://github.com/VasilyBoychuk/cvints/blob/master/cvints/dataset.py)
+- [Model](https://github.com/VasilyBoychuk/cvints/blob/master/cvints/model.py)
 - [Experiment](https://github.com/VasilyBoychuk/cvints/blob/master/cvints/experiment.py)
 
 ### Dataset
