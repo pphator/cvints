@@ -24,16 +24,20 @@ class Dataset:
     ----------
     path_to_images : str
         Absolute path to the folder with images
+
     path_to_annotations_file : str
         Absolute path to the annotations file (file should be in COCO format)
+
     is_sampled: bool
         If the value of the parameter is True, to the Dataset will be loaded only
         `samples_number` random images from the `path_to_data` with associated annotations
         from `path_to_annotations_file`
         If the value of the parameter is False, all images from `path_to_data`
         will be loaded to the Dataset
+
     samples_number: int
         The number of images to load to the Dataset if `is_sampled` is True
+
     filenames : list of str
     """
 
@@ -79,7 +83,7 @@ class Dataset:
             path_to_images=dataset.path_to_images,
             path_to_annotations_file=dataset.path_to_annotations_file,
             is_sampled=True,
-            sample_size=size,
+            sample_size=size
         )
 
     def get_images_info_by_filenames(self, filenames):
@@ -250,13 +254,14 @@ class DesktopCODataset(ObjectDetectionDataset):
     filenames : list of str
 
     """
-    def __init__(self):
+    def __init__(self, path_to_images=None, path_to_annotations_file=None, is_sampled=False, sample_size=1):
         core_path = str(Path(__file__).parents[1])
         path_to_images = core_path + '\\cvints\\opensets\\detection\\desktopco\\images\\'
         path_to_annotation_file = core_path + '\\cvints\\opensets\\detection\\desktopco\\annotations\\instances_default.json'
         super(DesktopCODataset, self).__init__(path_to_images=path_to_images,
                                                path_to_annotations_file=path_to_annotation_file,
-                                               is_sampled=False)
+                                               is_sampled=is_sampled,
+                                               sample_size=sample_size)
 
 
 class HumanDetectionDataset(ObjectDetectionDataset):
