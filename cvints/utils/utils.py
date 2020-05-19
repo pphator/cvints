@@ -104,6 +104,51 @@ COCO_INSTANCE_CATEGORY_NAMES = [
     'clock', 'vase', 'scissors', 'teddy bear', 'hair drier', 'toothbrush'
 ]
 
+def get_iou(bbox1, bbox2):
+    """
+
+    Parameters
+    ----------
+    bbox1 : list
+    bbox2 : list
+
+    Notes
+    -----
+    bbox[0] = x1
+    bbox[1] = y1
+    bbox[2] = width
+    bbox[3] = height
+    """
+
+    bbox1_x1 = bbox1[0]
+    bbox1_y1 = bbox1[1]
+    bbox1_x2 = bbox1[0] + bbox1[2]
+    bbox1_y2 = bbox1[1] + bbox1[3]
+
+    bbox2_x1 = bbox2[0]
+    bbox2_y1 = bbox2[1]
+    bbox2_x2 = bbox2[0] + bbox2[2]
+    bbox2_y2 = bbox2[1] + bbox2[3]
+
+    ixmin = max(bbox1_x1, bbox2_x1)
+    ixmax = min(bbox1_x2, bbox2_x2)
+    iymin = max(bbox1_y1, bbox2_y1)
+    iymax = min(bbox1_y2, bbox2_y2)
+
+    iw = np.maximum(ixmax - ixmin + 1.0, 0.0)
+    ih = np.maximum(iymax - iymin + 1.0, 0.0)
+
+    inters = iw * ih
+
+    uni = (
+            (bbox1_x2 - bbox1_x1 + 1.0) * (bbox1_y2 - bbox1_y1 + 1.0)
+            + (bbox2_x2 - bbox2_x1 + 1.0) * (bbox2_y2 - bbox2_y1 + 1.0)
+            - inters
+    )
+
+    iou = inters / uni
+    return iou
+
 
 def low_scores_filter(processing_results, threshold=DEFAULT_SCORES_THRESHOLD):
     """
@@ -123,6 +168,7 @@ def low_scores_filter(processing_results, threshold=DEFAULT_SCORES_THRESHOLD):
 
     for each_result in processing_results.results:
         image_id = each_result['image_id']
+        image_filename = each_result['image_filename']
         width, height = each_result['image_size']
 
         post_proc_results = defaultdict(list)
@@ -135,11 +181,13 @@ def low_scores_filter(processing_results, threshold=DEFAULT_SCORES_THRESHOLD):
                     post_proc_detections.append((bbox, score))
             post_proc_results[each_label] = post_proc_detections
         new_results.append({'image_id': image_id,
-                        'image_size': (width, height),
-                        'detections': post_proc_results})
+                            'image_filename': image_filename,
+                            'image_size': (width, height),
+                            'detections': post_proc_results})
 
     processing_results.set_results(new_results)
     return processing_results
+
 
 def non_max_suppression(bboxes, scores, iou_threshold=0.5):
     """
@@ -172,9 +220,7 @@ def non_max_suppression(bboxes, scores, iou_threshold=0.5):
 
         # select bboxes which have IoU value with current bbox higher than threshold
         for each_index in sort_index[1:]:
-
             iou_val = get_iou(current_bbox, bboxes[each_index])
-            print(iou_val)
             if iou_val >= iou_threshold:
                 indices_to_remove.append(each_index)
 
