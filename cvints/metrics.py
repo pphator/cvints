@@ -4,9 +4,18 @@ from cvints.utils.exceptions import CvintsException
 import cvints.utils.utils as cvints_utils
 import numpy as np
 from collections import defaultdict
+from pprint import PrettyPrinter
 
 
 class Metrics:
+    """
+    Attributes
+    ----------
+    items : list
+        List of metrics to calculate
+
+
+    """
     POSSIBLE_METRICS = ['Jaccard index', 'Precision', 'Recall', 'Miss rate']
 
     def __init__(self, ground_truth, predictions, iou_threshold=0.5):
@@ -24,6 +33,7 @@ class Metrics:
         self.ground_truth = ground_truth
         self.predictions = predictions
         self.iou_threshold = iou_threshold
+        self.result = defaultdict(defaultdict)
 
     def set_metrics(self, *args):
         for each_metrics_candidate in args:
@@ -40,7 +50,8 @@ class Metrics:
         if len(self.items) > 0:
             for each_metric in self.items:
                 if each_metric == 'Jaccard index':
-                    jaccard_index_by_categories = defaultdict(list)
+                    jaccard_index_by_categories = defaultdict(float)
+                    jaccard_index_by_categories_calculation = defaultdict(list)
                     mean_jaccard_index = 0
                     for each_filename in self.ground_truth.filenames:
                         image_predictions = self.predictions.get_results_by_filename(each_filename)
@@ -80,14 +91,13 @@ class Metrics:
                                                       'constant',
                                                       constant_values=(0, 0))
 
-                            jaccard_index_by_categories[each_category] += list(this_cat_iou)
-                    jaccard_index_values = []
-                    for each in jaccard_index_by_categories.values():
-                        jaccard_index_values += each
+                            jaccard_index_by_categories_calculation[each_category] += list(this_cat_iou)
 
-                    mean_jaccard_index = np.mean(jaccard_index_values)
-                    results['Jaccard_index'] = {'Jaccard_index_by_categories': jaccard_index_by_categories,
-                                                'Mean_jaccard_index': mean_jaccard_index}
+                    for each_category in jaccard_index_by_categories_calculation.keys():
+                        category_label = cvints_utils.MS_COCO_CATEGORIES_DICT[int(each_category)]
+                        jaccard_index_by_categories[category_label] = round(np.mean(jaccard_index_by_categories_calculation[each_category]), 2)
+
+                    self.result['Jaccard_index'] = jaccard_index_by_categories
 
                 elif each_metric == 'Precision':
                     precision_calculation_by_categories = defaultdict(list)
@@ -140,8 +150,9 @@ class Metrics:
                                 this_cat_precision = 0
                             precision_calculation_by_categories[each_category].append(this_cat_precision)
                     for each_category in precision_calculation_by_categories.keys():
-                        precision_by_categories[each_category] = np.mean(precision_calculation_by_categories[each_category])
-                    print(precision_by_categories)
+                        category_label = cvints_utils.MS_COCO_CATEGORIES_DICT[int(each_category)]
+                        precision_by_categories[category_label] = round(np.mean(precision_calculation_by_categories[each_category]), 2)
+                    self.result['Precision'] = precision_by_categories
 
                 elif each_metric == 'Recall':
                     recall_calculation_by_categories = defaultdict(list)
@@ -194,10 +205,18 @@ class Metrics:
                                 this_cat_recall = 0
                             recall_calculation_by_categories[each_category].append(this_cat_recall)
                     for each_category in recall_calculation_by_categories.keys():
-                        recall_by_categories[each_category] = np.mean(recall_calculation_by_categories[each_category])
-                    print(recall_by_categories)
+                        category_label = cvints_utils.MS_COCO_CATEGORIES_DICT[int(each_category)]
+                        recall_by_categories[category_label] = np.mean(recall_calculation_by_categories[each_category])
+                    self.result['Recall'] = recall_by_categories
 
         else:
             raise CvintsException('No metrics to calculate')
 
-        return results
+        return self.result
+
+    def print_results(self):
+        pprinter = PrettyPrinter()
+        if self.result:
+            for each_metric in self.result.keys():
+                print('Metric is {}'.format(each_metric))
+                pprinter.pprint(dict(self.result[each_metric]))
