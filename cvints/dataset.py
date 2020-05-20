@@ -104,8 +104,8 @@ class Dataset:
         images_info = []
         for filename_ind in tqdm(range(len(filenames))):
             each_filename = filenames[filename_ind]
-            item = next(x for x in self.annotations['images_info']
-                        if x['file_name'] == each_filename)
+            item = next((x for x in self.annotations['images_info']
+                        if x['file_name'] == each_filename), None)
             image_path = self.path_to_images + each_filename
             image = Image.open(image_path)
             images_info.append({'id': item['id'],
