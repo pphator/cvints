@@ -1,11 +1,11 @@
-from .utils import MS_COCO_CATEGORIES_DICT
-
 import numpy as np
 from collections import defaultdict
 from matplotlib import pyplot as plt
 import seaborn as sns
 from PIL import Image, ImageDraw, ImageFont
 from pathlib import Path
+
+from .utils import MS_COCO_CATEGORIES_DICT
 
 
 COLORS = ['#00ff88', '#ff0000', '#07aca7', '#ff9800', '#ff023c', '#a2aca7', '#070aa7']
@@ -143,7 +143,7 @@ def put_annotations_to_image(image, annotations):
     path_to_font = core_path + '\\cvints\\utils\\fonts\\OpenSans-Regular.ttf'
     # font = ImageFont.load(path_to_font)
 
-    font = ImageFont.truetype(path_to_font, size=80)
+    font = ImageFont.truetype(path_to_font, size=70)
     for cat_index in range(len(categories)):
         category = categories[cat_index]
         category_label = MS_COCO_CATEGORIES_DICT[int(category)]
@@ -155,6 +155,8 @@ def put_annotations_to_image(image, annotations):
                                  each_annotation[0][1] + each_annotation[0][3])),
                                outline=colors[cat_index], width=5)
                 draw.text((each_annotation[0][0] + 5, each_annotation[0][1] + 5), category_label, font=font)
+                draw.text((each_annotation[0][0] + each_annotation[0][2] - 5,
+                          each_annotation[0][1] + 5), str(round(each_annotation[1], 2)), font=font)
             elif isinstance(each_annotation, list):
                 draw.rectangle(((each_annotation[0], each_annotation[1]),
                                 (each_annotation[0] + each_annotation[2],
