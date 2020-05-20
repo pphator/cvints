@@ -1,4 +1,4 @@
-[![Python](https://img.shields.io/badge/python-3.6-blue.svg)](https://python.org) [![Python](https://img.shields.io/badge/python-3.6-blue.svg)](https://python.org)
+[![Python](https://img.shields.io/badge/python-3.6-blue.svg)](https://python.org) 
 
 
 # cvints
@@ -21,6 +21,7 @@ The library has several main entities:
 
 - [Dataset](https://github.com/VasilyBoychuk/cvints/blob/master/cvints/dataset.py)
 - [Model](https://github.com/VasilyBoychuk/cvints/blob/master/cvints/model.py)
+- [Metrics](https://github.com/VasilyBoychuk/cvints/blob/master/cvints/metrics.py)
 - [Experiment](https://github.com/VasilyBoychuk/cvints/blob/master/cvints/experiment.py)
 
 ### Dataset
