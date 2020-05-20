@@ -74,3 +74,16 @@ class Experiment:
             image = cvints_vis.open_image(image_path)
             image = cvints_vis.put_annotations_to_image(image, this_image_prediction)
             cvints_vis.show_image(image)
+
+    def show_prediction_on_images(self):
+        for each_image_info in self.dataset.annotations['images_info']:
+            file_name = each_image_info['file_name']
+            image_id = each_image_info['id']
+            this_image_prediction = self.results.get_results_by_image_id(image_id)
+            image_path = self.dataset.path_to_images + file_name
+            image = cvints_vis.open_image(image_path)
+            image = cvints_vis.put_annotations_to_image(image, this_image_prediction, color='red')
+
+            gt_annotations = self.dataset.get_image_annotations_by_filename(file_name)
+            image = cvints_vis.put_annotations_to_image(image, gt_annotations, color='green')
+            cvints_vis.show_image(image)
