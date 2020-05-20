@@ -121,13 +121,17 @@ def open_image(path_to_image):
     return image
 
 
-def put_annotations_to_image(image, annotations):
+def put_annotations_to_image(image, annotations, color=None):
     """
     Parameters
     ----------
     image : PIL Image
+
     annotations : dict
         {cat_id: (bbox, score)}
+
+    color : str
+        hex code for bboxes color (one for all kinds of object classes)
 
     Returns
     -------
@@ -136,7 +140,10 @@ def put_annotations_to_image(image, annotations):
 
     # check how many categories there are in the annotations
     categories = list(annotations.keys())
-    colors = COLORS[:len(categories)]
+    if color is None:
+        colors = COLORS[:len(categories)]
+    else:
+        colors = [color]*len(categories)
 
     draw = ImageDraw.Draw(image)
     core_path = str(Path(__file__).parents[1])
@@ -145,6 +152,8 @@ def put_annotations_to_image(image, annotations):
 
     font = ImageFont.truetype(path_to_font, size=70)
     for cat_index in range(len(categories)):
+        color = colors[cat_index]
+
         category = categories[cat_index]
         category_label = MS_COCO_CATEGORIES_DICT[int(category)]
         each_category_annotations = annotations[category]
@@ -153,7 +162,7 @@ def put_annotations_to_image(image, annotations):
                 draw.rectangle(((each_annotation[0][0], each_annotation[0][1]),
                                 (each_annotation[0][0] + each_annotation[0][2],
                                  each_annotation[0][1] + each_annotation[0][3])),
-                               outline=colors[cat_index], width=5)
+                               outline=color, width=5)
                 draw.text((each_annotation[0][0] + 5, each_annotation[0][1] + 5), category_label, font=font)
                 draw.text((each_annotation[0][0] + each_annotation[0][2] - 5,
                           each_annotation[0][1] + 5), str(round(each_annotation[1], 2)), font=font)
@@ -161,6 +170,6 @@ def put_annotations_to_image(image, annotations):
                 draw.rectangle(((each_annotation[0], each_annotation[1]),
                                 (each_annotation[0] + each_annotation[2],
                                  each_annotation[1] + each_annotation[3])),
-                               outline=colors[cat_index], width=5)
-                draw.text((each_annotation[0] + 5, each_annotation[1] + 5), category_label, font=font)
+                               outline=color, width=5)
+                draw.text((each_annotation[0] + 5, each_annotation[1] + each_annotation[3] - 90), category_label, font=font)
     return image
