@@ -21,6 +21,7 @@ The library has several main entities:
 
 - [Dataset](https://github.com/VasilyBoychuk/cvints/blob/master/cvints/dataset.py)
 - [Model](https://github.com/VasilyBoychuk/cvints/blob/master/cvints/model.py)
+- [Processing results](https://github.com/VasilyBoychuk/cvints/blob/master/cvints/processing_results.py)
 - [Metrics](https://github.com/VasilyBoychuk/cvints/blob/master/cvints/metrics.py)
 - [Experiment](https://github.com/VasilyBoychuk/cvints/blob/master/cvints/experiment.py)
 
@@ -31,7 +32,15 @@ To do this, specify the paths to images and annotation files.
 
 ### Model 
 
-You can define model using training/validation data, test data and results on test data.
+You can define model using model meta-data like input images size, post-processing methods, etc
+
+### Processing results
+
+Store model processing results with useful images info to chose post-processing methods to complete and evaluate your model
+
+### Metrics
+
+Chose some existed metrics for you Task, or implement some specific one.
 
 ### Experiment
 
@@ -41,4 +50,5 @@ in which all actions with other entities take place
 
 ## Examples
 
-Check dataset before start testing model with it ([rus](https://github.com/VasilyBoychuk/cvints/blob/master/examples/rus/Check%20dataset.ipynb)|eng)
+- Check dataset before start testing model with it ([rus](https://github.com/VasilyBoychuk/cvints/blob/master/examples/rus/Check%20dataset.ipynb)|eng))
+- Calculate metrics and check model results on an object detection task ([rus](https://github.com/VasilyBoychuk/cvints/blob/master/examples/rus/Object%20detection%20metrics%20and%20results.ipynb)|eng) 
