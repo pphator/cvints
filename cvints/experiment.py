@@ -32,7 +32,7 @@ class Experiment:
         if isinstance(value, Metrics):
             self._metrics = value
         elif isinstance(value, list):
-            self._metrics = Metrics(self.dataset, self.results)
+            self._metrics = Metrics(self.dataset, self.results, self.task)
             self._metrics.set_metrics(*value)
 
     def describe(self):
@@ -44,8 +44,7 @@ class Experiment:
         self.results = cvints_utils.low_scores_filter(self.results, scores_threshold)
 
     def apply_nms(self, nms_threshold=0.75):
-
-        for i in range(len(self.results)):
+        for i in range(len(self.results.results)):
             image_id = self.results.results[i]['image_id']
             image_filename = self.dataset.get_filename_by_id(image_id)
             detections = self.results.results[i]['detections']
