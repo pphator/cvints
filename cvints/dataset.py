@@ -182,6 +182,19 @@ class ObjectDetectionDataset(Dataset):
     def get_images_ids(self):
         return [image_info["id"] for image_info in self.annotations["images_info"]]
 
+    def get_dataset_objects_categories(self):
+        """
+
+        Returns
+        -------
+        result : list
+            The list of categories ids of the objects from the whole dataset
+        """
+
+        categories = [str(x['category_id']) for x in self.annotations['annotations_info']]
+        result = list(set(categories))
+        return result
+
     def get_image_annotations_by_filename(self, filename):
         """Method to get annotations for the image by it's filename
 
