@@ -16,9 +16,9 @@ class Metrics:
 
 
     """
-    POSSIBLE_METRICS = ['Jaccard index', 'Precision', 'Recall', 'Miss rate']
+    POSSIBLE_METRICS = ['Jaccard index', 'Precision', 'Recall', 'Miss rate', 'TP', 'FP', 'FN']
 
-    def __init__(self, ground_truth, predictions, iou_threshold=0.5):
+    def __init__(self, ground_truth, predictions, task, iou_threshold=0.5):
         """
         Parameters
         ----------
@@ -32,6 +32,7 @@ class Metrics:
         self.items = []
         self.ground_truth = ground_truth
         self.predictions = predictions
+        self.task = task
         self.iou_threshold = iou_threshold
         self.result = defaultdict(defaultdict)
 
@@ -47,166 +48,96 @@ class Metrics:
 
     def calculate(self):
         results = defaultdict(dict)
+        overall_categories = []
+        dataset_categories = self.ground_truth.get_dataset_objects_categories()
         if len(self.items) > 0:
-            for each_metric in self.items:
-                if each_metric == 'Jaccard index':
-                    jaccard_index_by_categories = defaultdict(float)
-                    jaccard_index_by_categories_calculation = defaultdict(list)
-                    mean_jaccard_index = 0
-                    for each_filename in self.ground_truth.filenames:
-                        image_predictions = self.predictions.get_results_by_filename(each_filename)
-                        image_gt = self.ground_truth.get_image_annotations_by_filename(each_filename)
-                        # get all categories from image_gt
-                        object_categories = image_gt.keys()
-                        for each_category in object_categories:
-                            this_cat_iou = None
+            if self.task == 'Object Detection':
+                jaccard_index_by_categories = defaultdict(float)
+                jaccard_index_by_categories_calculation = defaultdict(list)
+                fn_by_categories_calculations = defaultdict(list)
+                fp_by_categories_calculations = defaultdict(list)
+                tp_by_categories_calculations = defaultdict(list)
 
-                            this_cat_gt = image_gt[each_category]  # list of bboxes
-                            this_cat_detections = image_predictions[each_category]  # list of tuples (bbox, score)
-                            this_cat_detections_bboxes = [x[0] for x in this_cat_detections]
+                fn_by_categories = defaultdict(int)
+                fp_by_categories = defaultdict(int)
+                tp_by_categories = defaultdict(int)
 
-                            this_cat_gt_number = len(this_cat_gt)
-                            this_cat_detections_number = len(this_cat_detections_bboxes)
-
-                            this_cat_iou_candidate = []
-                            for each_gt_bbox in this_cat_gt:
-                                for each_detection_bbox in this_cat_detections_bboxes:
-                                    this_cat_iou_candidate.append(cvints_utils.get_iou(each_gt_bbox, each_detection_bbox))
-
-                            this_cat_iou_candidate_sorted = np.sort(this_cat_iou_candidate)[::-1]
-
-                            if this_cat_gt_number == this_cat_detections_number:
-                                this_cat_iou = this_cat_iou_candidate_sorted[:this_cat_gt_number]
-                            elif this_cat_gt_number > this_cat_detections_number:
-                                this_cat_iou = this_cat_iou_candidate_sorted[:this_cat_detections_number]
-                                this_cat_iou = np.pad(this_cat_iou,
-                                                      (0, this_cat_gt_number-this_cat_detections_number),
-                                                      'constant',
-                                                      constant_values=(0, 0))
-
-                            elif this_cat_gt_number < this_cat_detections_number:
-                                this_cat_iou = this_cat_iou_candidate_sorted[:this_cat_gt_number]
-                                this_cat_iou = np.pad(this_cat_iou,
-                                                      (0, this_cat_detections_number-this_cat_gt_number),
-                                                      'constant',
-                                                      constant_values=(0, 0))
-
-                            jaccard_index_by_categories_calculation[each_category] += list(this_cat_iou)
-
-                    for each_category in jaccard_index_by_categories_calculation.keys():
+                precision_by_categories = defaultdict(float)
+                recall_by_categories = defaultdict(float)
+                for each_filename in self.ground_truth.filenames:
+                    image_predictions = self.predictions.get_results_by_filename(each_filename)
+                    image_gt = self.ground_truth.get_image_annotations_by_filename(each_filename)
+                    # get all categories from image_gt
+                    object_categories = list(set(list(image_gt.keys()) + list(image_predictions.keys())))
+                    overall_categories += object_categories
+                    for each_category in object_categories:
                         category_label = cvints_utils.MS_COCO_CATEGORIES_DICT[int(each_category)]
-                        jaccard_index_by_categories[category_label] = round(np.mean(jaccard_index_by_categories_calculation[each_category]), 2)
+                        this_cat_iou = None
+                        this_cat_gt = image_gt[each_category]  # list of bboxes
+                        this_cat_detections = image_predictions[each_category]  # list of tuples (bbox, score)
+                        this_cat_detections_bboxes = [x[0] for x in this_cat_detections]
 
+                        this_cat_gt_number = len(this_cat_gt)
+                        this_cat_detections_number = len(this_cat_detections_bboxes)
+
+                        this_cat_iou_candidate = []
+                        for each_gt_bbox in this_cat_gt:
+                            for each_detection_bbox in this_cat_detections_bboxes:
+                                this_cat_iou_candidate.append(cvints_utils.get_iou(each_gt_bbox, each_detection_bbox))
+
+                        this_cat_iou_candidate_sorted = np.sort(this_cat_iou_candidate)[::-1]
+
+                        if this_cat_gt_number == this_cat_detections_number:
+                            this_cat_iou = this_cat_iou_candidate_sorted[:this_cat_gt_number]
+                        elif this_cat_gt_number > this_cat_detections_number:
+                            this_cat_iou = this_cat_iou_candidate_sorted[:this_cat_detections_number]
+                            # this_cat_iou = np.pad(this_cat_iou,
+                            #                       (0, this_cat_gt_number-this_cat_detections_number),
+                            #                       'constant',
+                            #                       constant_values=(0, 0))
+                            fn_by_categories_calculations[each_category].append(this_cat_gt_number-this_cat_detections_number)
+
+                        elif this_cat_gt_number < this_cat_detections_number:
+                            this_cat_iou = this_cat_iou_candidate_sorted[:this_cat_gt_number]
+                            # this_cat_iou = np.pad(this_cat_iou,
+                            #                       (0, this_cat_detections_number-this_cat_gt_number),
+                            #                       'constant',
+                            #                       constant_values=(0, 0))
+                            fp_by_categories_calculations[each_category].append(this_cat_detections_number-this_cat_gt_number)
+
+                        jaccard_index_by_categories_calculation[each_category] += list(this_cat_iou)
+
+                for each_category in dataset_categories:
+                    category_label = cvints_utils.MS_COCO_CATEGORIES_DICT[int(each_category)]
+                    this_cat_fp_number = len([x for x in jaccard_index_by_categories_calculation[each_category] if x < self.iou_threshold])
+                    this_cat_tp_number = len([x for x in jaccard_index_by_categories_calculation[each_category] if x >= self.iou_threshold])
+                    fp_by_categories_calculations[each_category].append(this_cat_fp_number)
+                    tp_by_categories_calculations[each_category].append(this_cat_tp_number)
+
+                    jaccard_index_by_categories[category_label] = round(np.mean(jaccard_index_by_categories_calculation[each_category]), 2)
+                    tp_by_categories[category_label] = np.sum(tp_by_categories_calculations[each_category])
+                    fp_by_categories[category_label] = np.sum(fp_by_categories_calculations[each_category])
+                    fn_by_categories[category_label] = np.sum(fn_by_categories_calculations[each_category])
+                    if (tp_by_categories[category_label] + fp_by_categories[category_label]) != 0:
+                        precision_by_categories[category_label] = tp_by_categories[category_label] / (tp_by_categories[category_label] + fp_by_categories[category_label])
+                    else:
+                        precision_by_categories[category_label] = 0
+                    if (tp_by_categories[category_label] + fn_by_categories[category_label]) != 0:
+                        recall_by_categories[category_label] = tp_by_categories[category_label] / (tp_by_categories[category_label] + fn_by_categories[category_label])
+                    else:
+                        recall_by_categories[category_label] = 0
+
+                if 'Jaccard index' in self.items:
                     self.result['Jaccard_index'] = jaccard_index_by_categories
-
-                elif each_metric == 'Precision':
-                    precision_calculation_by_categories = defaultdict(list)
-                    precision_by_categories = defaultdict(float)
-                    mean_precision = 0
-                    jaccard_index_by_categories = defaultdict(list)
-                    mean_jaccard_index = 0
-                    for each_filename in self.ground_truth.filenames:
-                        image_predictions = self.predictions.get_results_by_filename(each_filename)
-                        image_gt = self.ground_truth.get_image_annotations_by_filename(each_filename)
-                        # get all categories from image_gt
-                        object_categories = image_gt.keys()
-                        for each_category in object_categories:
-                            this_cat_iou = None
-
-                            this_cat_gt = image_gt[each_category]  # list of bboxes
-                            this_cat_detections = image_predictions[each_category]  # list of tuples (bbox, score)
-                            this_cat_detections_bboxes = [x[0] for x in this_cat_detections]
-
-                            this_cat_gt_number = len(this_cat_gt)
-                            this_cat_detections_number = len(this_cat_detections_bboxes)
-
-                            this_cat_iou_candidate = []
-                            for each_gt_bbox in this_cat_gt:
-                                for each_detection_bbox in this_cat_detections_bboxes:
-                                    this_cat_iou_candidate.append(cvints_utils.get_iou(each_gt_bbox, each_detection_bbox))
-
-                            this_cat_iou_candidate_sorted = np.sort(this_cat_iou_candidate)[::-1]
-
-                            if this_cat_gt_number == this_cat_detections_number:
-                                this_cat_iou = this_cat_iou_candidate_sorted[:this_cat_gt_number]
-                            elif this_cat_gt_number > this_cat_detections_number:
-                                this_cat_iou = this_cat_iou_candidate_sorted[:this_cat_detections_number]
-                                this_cat_iou = np.pad(this_cat_iou,
-                                                      (0, this_cat_gt_number - this_cat_detections_number),
-                                                      'constant',
-                                                      constant_values=(0, 0))
-
-                            elif this_cat_gt_number < this_cat_detections_number:
-                                this_cat_iou = this_cat_iou_candidate_sorted[:this_cat_gt_number]
-                                this_cat_iou = np.pad(this_cat_iou,
-                                                      (0, this_cat_detections_number - this_cat_gt_number),
-                                                      'constant',
-                                                      constant_values=(0, 0))
-
-                            this_cat_tp_number = len([x for x in this_cat_iou if x >= self.iou_threshold])
-                            if this_cat_detections_number != 0:
-                                this_cat_precision = this_cat_tp_number / this_cat_detections_number
-                            else:
-                                this_cat_precision = 0
-                            precision_calculation_by_categories[each_category].append(this_cat_precision)
-                    for each_category in precision_calculation_by_categories.keys():
-                        category_label = cvints_utils.MS_COCO_CATEGORIES_DICT[int(each_category)]
-                        precision_by_categories[category_label] = round(np.mean(precision_calculation_by_categories[each_category]), 2)
+                if 'TP' in self.items:
+                    self.result['TP'] = tp_by_categories
+                if 'FP' in self.items:
+                    self.result['FP'] = fp_by_categories
+                if 'FN' in self.items:
+                    self.result['FN'] = fn_by_categories
+                if 'Precision' in self.items:
                     self.result['Precision'] = precision_by_categories
-
-                elif each_metric == 'Recall':
-                    recall_calculation_by_categories = defaultdict(list)
-                    recall_by_categories = defaultdict(float)
-                    mean_recall = 0
-                    jaccard_index_by_categories = defaultdict(list)
-                    mean_jaccard_index = 0
-                    for each_filename in self.ground_truth.filenames:
-                        image_predictions = self.predictions.get_results_by_filename(each_filename)
-                        image_gt = self.ground_truth.get_image_annotations_by_filename(each_filename)
-                        # get all categories from image_gt
-                        object_categories = image_gt.keys()
-                        for each_category in object_categories:
-                            this_cat_iou = None
-
-                            this_cat_gt = image_gt[each_category]  # list of bboxes
-                            this_cat_detections = image_predictions[each_category]  # list of tuples (bbox, score)
-                            this_cat_detections_bboxes = [x[0] for x in this_cat_detections]
-
-                            this_cat_gt_number = len(this_cat_gt)
-                            this_cat_detections_number = len(this_cat_detections_bboxes)
-
-                            this_cat_iou_candidate = []
-                            for each_gt_bbox in this_cat_gt:
-                                for each_detection_bbox in this_cat_detections_bboxes:
-                                    this_cat_iou_candidate.append(cvints_utils.get_iou(each_gt_bbox, each_detection_bbox))
-
-                            this_cat_iou_candidate_sorted = np.sort(this_cat_iou_candidate)[::-1]
-
-                            if this_cat_gt_number == this_cat_detections_number:
-                                this_cat_iou = this_cat_iou_candidate_sorted[:this_cat_gt_number]
-                            elif this_cat_gt_number > this_cat_detections_number:
-                                this_cat_iou = this_cat_iou_candidate_sorted[:this_cat_detections_number]
-                                this_cat_iou = np.pad(this_cat_iou,
-                                                      (0, this_cat_gt_number - this_cat_detections_number),
-                                                      'constant',
-                                                      constant_values=(0, 0))
-
-                            elif this_cat_gt_number < this_cat_detections_number:
-                                this_cat_iou = this_cat_iou_candidate_sorted[:this_cat_gt_number]
-                                this_cat_iou = np.pad(this_cat_iou,
-                                                      (0, this_cat_detections_number - this_cat_gt_number),
-                                                      'constant',
-                                                      constant_values=(0, 0))
-
-                            this_cat_tp_number = len([x for x in this_cat_iou if x >= self.iou_threshold])
-                            if this_cat_detections_number != 0:
-                                this_cat_recall = this_cat_tp_number / this_cat_gt_number
-                            else:
-                                this_cat_recall = 0
-                            recall_calculation_by_categories[each_category].append(this_cat_recall)
-                    for each_category in recall_calculation_by_categories.keys():
-                        category_label = cvints_utils.MS_COCO_CATEGORIES_DICT[int(each_category)]
-                        recall_by_categories[category_label] = np.mean(recall_calculation_by_categories[each_category])
+                if 'Recall' in self.items:
                     self.result['Recall'] = recall_by_categories
 
         else:
@@ -214,7 +145,7 @@ class Metrics:
 
         return self.result
 
-    def print_results(self):
+    def print_values(self):
         pprinter = PrettyPrinter()
         if self.result:
             for each_metric in self.result.keys():
