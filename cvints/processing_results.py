@@ -1,4 +1,5 @@
 from collections import defaultdict
+import cvints.utils.utils as cvints_utils
 
 
 class ProcessingResults:
@@ -25,7 +26,18 @@ class ObjectDetectionResults(ProcessingResults):
         return "member of ObjectDetectionResults"
 
     def __len__(self):
-        return len(self.results)
+        result = 0
+        for each_image in self.results:
+            for each_category in each_image['detections'].keys():
+                result += len(each_image['detections'][each_category])
+        return result
+
+    def get_all_categories(self):
+        result = []
+        for each_image in self.results:
+            for each_category in each_image['detections'].keys():
+                result.append(cvints_utils.MS_COCO_CATEGORIES_DICT[int(each_category)])
+        return result
 
     def load_results(self, results, images_info):
         """
