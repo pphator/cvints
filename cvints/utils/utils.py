@@ -179,7 +179,8 @@ def low_scores_filter(processing_results, threshold=DEFAULT_SCORES_THRESHOLD):
                 score = each_detection[1]
                 if score >= threshold:
                     post_proc_detections.append((bbox, score))
-            post_proc_results[each_label] = post_proc_detections
+            if len(post_proc_detections) > 0:
+                post_proc_results[each_label] = post_proc_detections
         new_results.append({'image_id': image_id,
                             'image_filename': image_filename,
                             'image_size': (width, height),
