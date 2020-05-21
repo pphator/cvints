@@ -50,5 +50,5 @@ in which all actions with other entities take place
 
 ## Examples
 
-- Check dataset before start testing model with it ([rus](https://github.com/VasilyBoychuk/cvints/blob/master/examples/rus/Check%20dataset.ipynb)|eng))
-- Calculate metrics and check model results on an object detection task ([rus](https://github.com/VasilyBoychuk/cvints/blob/master/examples/rus/Object%20detection%20metrics%20and%20results.ipynb)|eng) 
+- Check dataset before start testing model with it ([rus](https://github.com/VasilyBoychuk/cvints/blob/master/examples/rus/Check%20dataset.ipynb) | eng)
+- Calculate metrics and check model results on an object detection task ([rus](https://github.com/VasilyBoychuk/cvints/blob/master/examples/rus/Object%20detection%20metrics%20and%20results.ipynb) | eng) 
